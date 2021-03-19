@@ -18,3 +18,8 @@ class Tweet:
 @dataclass
 class LabeledTweet(Tweet):
     labels: [Label] * 7
+
+
+class Model(Protocol):
+    def predict(self, tweets: List[Tweet]) -> List[List[bool]]:
+        ...

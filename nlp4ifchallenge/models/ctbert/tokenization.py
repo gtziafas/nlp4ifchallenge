@@ -26,17 +26,9 @@ def tokenize_labeled(tweet: LabeledTweet) -> Tuple[Tensor, Tensor]:
     return tokenize_unlabeled(tweet), tokenize_labels(tweet.labels)
 
 
-@overload
-def make_dataset(path: str, labeled: Literal[True]) -> List[Tuple[Tensor, Tensor]]:
-    pass
+def make_labeled_dataset(path: str) -> List[Tuple[Tensor, Tensor]]:
+    return [tokenize_labeled(tweet) for tweet in read_labeled(path)]
 
 
-@overload
-def make_dataset(path: str, labeled: Literal[False]) -> List[Tensor]:
-    pass
-
-
-def make_dataset(path, labeled):
-    read_fn = read_labeled if labeled else read_labeled
-    tok_fn = tokenize_labeled if labeled else tokenize_unlabeled
-    return [tok_fn(tweet) for tweet in read_fn(path)]
+def make_unlabeled_dataset(path: str) -> List[Tensor]:
+    return [tokenize_unlabeled(tweet) for tweet in read_unlabeled(path)]
