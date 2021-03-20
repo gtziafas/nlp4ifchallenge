@@ -4,6 +4,8 @@ from dataclasses import dataclass
 
 from torch import Tensor
 
+from torch.nn import Module
+
 Label = Maybe[bool]
 
 T1 = TypeVar('T1')
@@ -21,5 +23,5 @@ class LabeledTweet(Tweet):
 
 
 class Model(Protocol):
-    def predict(self, tweets: List[Tweet]) -> List[List[bool]]:
+    def predict(self, tweets: List[Tweet]) -> List[str]:
         ...
