@@ -3,9 +3,15 @@ from typing import Optional as Maybe
 from dataclasses import dataclass
 from abc import ABC
 
-from torch import Tensor
+from torch import Tensor, LongTensor, tensor
+from torch.optim import Optimizer
+from torch.nn.utils.rnn import pad_sequence
+from torch.utils.data import DataLoader
+import numpy as np 
 
-from torch.nn import Module
+from torch.nn import Module, Linear, BCEWithLogitsLoss
+
+array = np.array 
 
 Label = Maybe[bool]
 
