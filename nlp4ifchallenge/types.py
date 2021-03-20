@@ -1,6 +1,7 @@
-from typing import List, Tuple, Callable, TypeVar, Any, overload, Literal, Protocol
+from typing import List, Tuple, Callable, TypeVar, Any, overload
 from typing import Optional as Maybe
 from dataclasses import dataclass
+from abc import ABC
 
 from torch import Tensor
 
@@ -22,6 +23,6 @@ class LabeledTweet(Tweet):
     labels: [Label] * 7
 
 
-class Model(Protocol):
+class Model(ABC):
     def predict(self, tweets: List[Tweet]) -> List[str]:
         ...
