@@ -6,7 +6,7 @@ def read_labeled(file_path: str) -> List[LabeledTweet]:
         def parse_label(label: str) -> Label:
             return True if label == 'yes' else False if label == 'no' else None
 
-        tabs = line.split('\t')
+        tabs = line.strip('\n').split('\t')
         nr, text, labels = tabs[0], tabs[1], tabs[2:]
         return LabeledTweet(int(nr), text, list(map(parse_label, labels)))
     with open(file_path, 'r') as f:
