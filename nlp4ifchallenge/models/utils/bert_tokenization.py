@@ -1,5 +1,5 @@
 from ...types import *
-from ...prepocessing import *
+from ...preprocessing import *
 from transformers import BertTokenizer
 from torch import tensor, long, stack
 from torch.nn.utils.rnn import pad_sequence as _pad_sequence
