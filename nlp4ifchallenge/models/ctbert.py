@@ -1,5 +1,7 @@
+from .utils.training import train_epoch
 from .utils.bert_tokenization import *
 from transformers import BertModel
+from ..external.scorer.main import evaluate
 
 import torch
 from torch.nn import Linear, BCEWithLogitsLoss, Dropout
@@ -21,7 +23,7 @@ class CTBERT(Module, Model):
     def __init__(self):
         super(CTBERT, self).__init__()
         self.core = BertModel.from_pretrained('digitalepidemiologylab/covid-twitter-bert-v2')
-        self.dropout = Dropout(0.5)
+        self.dropout = Dropout(0.1)
         self.classifier = Linear(1024, 7)
 
     def forward(self, x: Tensor):
@@ -46,17 +48,14 @@ def main(train_path: str = './nlp4ifchallenge/data/covid19_disinfo_binary_englis
     model.train()
 
     train_ds = read_labeled(train_path)
-    train_dl = DataLoader(tensorize_labeled(train_ds), batch_size=16,
+    train_dl = DataLoader(tensorize_labeled(train_ds), batch_size=1,
                           collate_fn=lambda batch: collate_tuples(batch, tokenizer.pad_token_id))
 
     criterion = BCEWithLogitsLoss()
-    optimizer = AdaBelief(model.classifier.parameters(), lr=1e-05, weight_decay=1e-02)
+    optimizer = AdaBelief(model.parameters(), lr=1e-05, weight_decay=1e-02)
 
     num_epochs = 5
+    log: List[Dict] = []
     for epoch in range(num_epochs):
-        for bx, by in train_dl:
-            bp = model(bx.cuda())
-            batch_loss = criterion(bp, by.float().cuda())
-            batch_loss.backward()
-            optimizer.step()
-            optimizer.zero_grad()
+        log.append(train_epoch(model, train_dl, optimizer, criterion, 'cuda'))
+        print(log[-1])

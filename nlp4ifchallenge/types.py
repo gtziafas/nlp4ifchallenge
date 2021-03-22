@@ -1,4 +1,4 @@
-from typing import List, Tuple, Callable, TypeVar, Any, overload
+from typing import List, Tuple, Callable, TypeVar, Any, overload, Dict
 from typing import Optional as Maybe
 from dataclasses import dataclass
 from abc import ABC
