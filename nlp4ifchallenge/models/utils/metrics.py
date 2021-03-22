@@ -1,6 +1,5 @@
 from ...types import * 
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score, hamming_loss
-import torch
 
 
 def get_metrics(preds: List[List[int]], labels: List[List[int]]) -> Dict[str, float]:
