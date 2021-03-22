@@ -1,5 +1,5 @@
-from ...types import *
-from ...preprocessing import *
+from ..types import *
+from ..preprocessing import *
 from torch import tensor, long, stack
 from torch.nn.utils.rnn import pad_sequence as _pad_sequence
 
@@ -7,7 +7,7 @@ from transformers import AutoModel, AutoTokenizer
 
 
 class BERTLike(Module, Model):
-    def __init__(self, name: str, model_dim: int, dropout_rate: float = 0.33, max_length: Maybe[int] = None):
+    def __init__(self, name: str, model_dim: int, dropout_rate: float = 0.5, max_length: Maybe[int] = None):
         super().__init__()
         self.core = AutoModel.from_pretrained(name)
         self.tokenizer = AutoTokenizer.from_pretrained(name, use_fast=False)
@@ -78,6 +78,7 @@ def make_unlabeled_dataset(path: str, tokenizer: AutoTokenizer, **kwargs) -> Lis
 
 
 def make_model(name: str) -> BERTLike:
+    # todo: find all applicable models
     if name == 'del-covid':
         return BERTLike(name='digitalepidemiologylab/covid-twitter-bert-v2', model_dim=1024)
     if name == 'vinai-covid':

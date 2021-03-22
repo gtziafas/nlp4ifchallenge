@@ -1,7 +1,9 @@
-from ...types import *
-from .metrics import get_metrics
+from ..types import *
+from .utils.metrics import get_metrics
 from .bert import *
 from adabelief_pytorch import AdaBelief
+from warnings import filterwarnings
+from sklearn.utils.class_weight import compute_class_weight
 
 import torch
 
@@ -55,7 +57,7 @@ def eval_epoch(model: Module, dl: DataLoader, loss_fn: Module, device: str) -> D
 
         epoch_loss += loss.item()
 
-    return {**get_metrics(all_preds, all_labels), **{'loss': epoch_loss / len(dl)}}
+    return {**get_metrics(all_preds, all_labels), **{'loss': epoch_loss/len(dl)}}
 
 
 def train_bert(name: str,
@@ -63,21 +65,29 @@ def train_bert(name: str,
                dev_path: str = './nlp4ifchallenge/data/covid19_disinfo_binary_english_dev_input.tsv',
                test_path: str = '',
                device: str = 'cuda',
-               batch_size: int = 1):
-    # todo
+               batch_size: int = 1,
+               num_epochs: int = 10):
+    # todo: early stopping & saving
+
     torch.manual_seed(0)
+    filterwarnings('ignore')
 
     model = make_model(name).to(device)
 
-    train_ds = read_labeled(train_path)
+    train_ds, dev_ds = read_labeled(train_path), read_labeled(dev_path)
     train_dl = DataLoader(model.tensorize_labeled(train_ds), batch_size=batch_size,
-                          collate_fn=lambda batch: collate_tuples(batch, model.tokenizer.pad_token_id))
+                          collate_fn=lambda batch: collate_tuples(batch, model.tokenizer.pad_token_id), shuffle=True)
+    dev_dl = DataLoader(model.tensorize_labeled(dev_ds), batch_size=batch_size,
+                          collate_fn=lambda batch: collate_tuples(batch, model.tokenizer.pad_token_id), shuffle=False)
 
-    criterion = BCEWithLogitsLoss()
-    optimizer = AdaBelief(model.parameters(), lr=1e-05, weight_decay=1e-02, print_change_log=False)
+    class_weights = tensor([0.6223, 12.6667,  1.0594,  2.9561,  2.0473,  3.4653,  1.6374], device=device)
+    criterion = BCEWithLogitsLoss(pos_weight=class_weights)
+    optimizer = AdaBelief(model.parameters(), lr=1e-05, weight_decay=1e-01, print_change_log=False)
 
-    num_epochs = 5
-    log: List[Dict] = []
+    train_log, dev_log = [], []
     for epoch in range(num_epochs):
-        log.append(train_epoch(model, train_dl, optimizer, criterion, device))
-        print(log[-1])
+        train_log.append(train_epoch(model, train_dl, optimizer, criterion, device))
+        print(train_log[-1])
+        dev_log.append(eval_epoch(model, dev_dl, criterion, device))
+        print(dev_log[-1])
+        print('=' * 64)
