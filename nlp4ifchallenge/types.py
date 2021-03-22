@@ -9,7 +9,7 @@ from torch.nn.utils.rnn import pad_sequence
 from torch.utils.data import DataLoader
 import numpy as np 
 
-from torch.nn import Module, Linear, BCEWithLogitsLoss
+from torch.nn import Module, Linear, BCEWithLogitsLoss, Dropout
 
 array = np.array 
 
