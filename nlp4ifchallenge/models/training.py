@@ -33,7 +33,7 @@ def train_epoch(model: Module, dl: DataLoader, optim: Optimizer, loss_fn: Module
 
         epoch_loss += loss.item()
 
-    return {**get_metrics(all_preds, all_labels), **{'loss': epoch_loss/len(dl)}}
+    return {'loss': round(epoch_loss/len(dl), 5), **get_metrics(all_preds, all_labels)}
 
 
 @torch.no_grad()
@@ -57,7 +57,7 @@ def eval_epoch(model: Module, dl: DataLoader, loss_fn: Module, device: str) -> D
 
         epoch_loss += loss.item()
 
-    return {**get_metrics(all_preds, all_labels), **{'loss': epoch_loss/len(dl)}}
+    return {'loss': round(epoch_loss/len(dl), 5), **get_metrics(all_preds, all_labels)}
 
 
 def train_bert(name: str,

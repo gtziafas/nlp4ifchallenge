@@ -17,8 +17,8 @@ def get_metrics(preds: List[List[int]], labels: List[List[int]]) -> Dict[str, fl
                            precision_score(pcp, pcl, labels=['yes', 'no'], average='weighted'))
                           for pcp, pcl in zip(per_column_preds, per_column_labels)]
     f1s, ps, rs = list(zip(*per_column_metrics))
-    return {'accuracy': _round(accuracy_score(preds, labels)),
-            'hamming': _round(1 - hamming_loss(preds, labels)),
+    return {'accuracy': _round(accuracy_score(array(preds), array(labels))),
+            'hamming': _round(1 - hamming_loss(array(preds), array(labels))),
             'mean_f1': _round(sum(f1s)/len(f1s)),
             'mean_p': _round(sum(ps)/len(ps)),
             'mean_r': _round(sum(rs)/len(rs)),
