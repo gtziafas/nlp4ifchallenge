@@ -34,7 +34,7 @@ def default_rnn():
 
 
 def labels_to_vec(labels: List[Label]) -> array:
-    return [1 if l == True else 0 for l in labels]
+    return array([1 if l == True else 0 for l in labels])
 
 
 def collator(batch: List[Tuple[array, array]]) -> Tuple[Tensor, Tensor]:
