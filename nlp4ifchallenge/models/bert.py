@@ -84,3 +84,43 @@ def make_model(name: str) -> BERTLike:
         pass
     else:
         raise ValueError(f'unknown name {name}')
+
+
+def train_bert(name: str,
+               train_path: str = './nlp4ifchallenge/data/covid19_disinfo_binary_english_train.tsv',
+               dev_path: str = './nlp4ifchallenge/data/covid19_disinfo_binary_english_dev_input.tsv',
+               test_path: str = '',
+               device: str = 'cuda',
+               batch_size: int = 1,
+               num_epochs: int = 10):
+    save_path = f'./nlp4ifchallenge/checkpoints/{name}'
+
+    torch.manual_seed(0)
+    filterwarnings('ignore')
+
+    model = make_model(name).to(device)
+
+    train_ds, dev_ds = read_labeled(train_path), read_labeled(dev_path)
+    train_dl = DataLoader(model.tensorize_labeled(train_ds), batch_size=batch_size,
+                          collate_fn=lambda batch: collate_tuples(batch, model.tokenizer.pad_token_id), shuffle=True)
+    dev_dl = DataLoader(model.tensorize_labeled(dev_ds), batch_size=batch_size,
+                          collate_fn=lambda batch: collate_tuples(batch, model.tokenizer.pad_token_id), shuffle=False)
+
+    class_weights = tensor([0.6223, 12.6667,  1.0594,  2.9561,  2.0473,  3.4653,  1.6374], device=device)
+    criterion = BCEWithLogitsLoss(pos_weight=class_weights)
+    optimizer = AdaBelief(model.parameters(), lr=1e-05, weight_decay=1e-01, print_change_log=False)
+
+    train_log, dev_log = [], []
+    best = 0.
+    for epoch in range(num_epochs):
+        train_log.append(train_epoch(model, train_dl, optimizer, criterion, device))
+        print(train_log[-1])
+        dev_log.append(eval_epoch(model, dev_dl, criterion, device))
+        print(dev_log[-1])
+        print('=' * 64)
+        mean_f1 = dev_log[-1]['mean_f1']
+        if mean_f1 > best:
+            best = mean_f1
+            faith = array([c['f1'] for c in dev_log[-1]['column_wise']])
+            torch.save(
+                {'faith': faith, 'model_state_dict': model.state_dict()}, f'{save_path}/model.p')

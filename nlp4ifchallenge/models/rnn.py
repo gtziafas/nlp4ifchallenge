@@ -103,7 +103,7 @@ def train_rnn(train_path: str = './nlp4ifchallenge/data/covid19_disinfo_binary_e
     loss_fn = BCEWithLogitsLoss(reduction='mean').to(device)
 
     train_log, dev_log = [], []
-    best, patience = 0., early_stop_patience
+    best, patience = {'mean_f1': 0.}, early_stop_patience
     for epoch in range(num_epochs):
         train_log.append(train_epoch(model, train_dl, optim, loss_fn, device))
         print(f'Epoch {epoch+1}/{num_epochs}')
@@ -118,15 +118,15 @@ def train_rnn(train_path: str = './nlp4ifchallenge/data/covid19_disinfo_binary_e
             print()
 
             # model selection
-            if dev_log[-1]['mean_f1'] <= best:
+            # model selection
+            if dev_log[-1]['mean_f1'] <= best['mean_f1']:
                 patience -= 1
                 if not patience:
                     print('\nEarly stopping...')
                     break
             else:
-                model_name = '_'.join([embeddings, 'rnn', '.p'])
                 torch.save(model.state_dict, os.path.join(SAVE_PATH, model_name))
-                best = dev_log[-1]['mean_f1']
+                best = dev_log[-1]
                 patience = early_stop_patience
 
     # save all stuff
