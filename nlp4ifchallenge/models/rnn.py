@@ -1,6 +1,6 @@
 from ..types import *
 from ..preprocessing import read_labeled
-from .utils.embeddings import make_word_embedder
+from .utils.embeddings import make_word_embedder, WordEmbedder
 from .training import train_epoch, eval_epoch
 
 import torch
@@ -13,8 +13,9 @@ from adabelief_pytorch import AdaBelief
 SAVE_PATH = '../checkpoints'
 
 
-class MultiLabelRNN(Module, Model):
-    def __init__(self, num_classes: int, 
+class MultiLabelRNN(Module):
+    def __init__(self, 
+                num_classes: int, 
                 inp_dim: int, 
                 hidden_dim: int, 
                 num_layers: int,
@@ -43,15 +44,17 @@ class TrainedMultiLabelRNN(Module, Model):
         self.core = core
         self.device = device
 
+    def embedd(self, tweets: List[Tweet]) -> Tensor:
+        word_embedds = [tensor(self.we(tweet.text), dtype=torch.float, device=self.device) for tweet in tweets]
+        return pad_sequence(word_embedds, batch_first=True)
+        
     def predict(self, tweets: List[Tweet]) -> List[str]:
-        word_vectors = [tensor(self.we(tweet.text), dtype=torch.float, device=self.device) for tweet in tweets]
-        inputs = pad_sequence(word_vectors, batch_first=True)
+        inputs = self.embedd(tweets)
         preds = self.core.forward(inputs).sigmoid().round().long().cpu().tolist()
         return list(map(preds_to_str, preds))
 
     def predict_scores(self, tweets: List[Tweet]) -> array:
-        word_vectors = [tensor(self.we(tweet.text), dtype=torch.float, device=self.device) for tweet in tweets]
-        inputs = pad_sequence(word_vectors, batch_first=True)
+        inputs = self.embedd(tweets)
         return self.core.forward(inputs).sigmoid().cpu().tolist()
 
 

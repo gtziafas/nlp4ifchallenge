@@ -38,23 +38,22 @@ class TrainedMultiLabelMLP(Module, Model):
         self.extractor = tf_idf_extractor
         self.device = device
 
-    def predict(self, tweets: List[Tweet]) -> List[str]:
+    def embedd(self, tweets: List[Tweet]) -> Tensor:
         bags = array([self.we(tweet.text).mean(axis=0)for tweet in tweets])
         if self.lsa is not None and self.extractor is not None:
             tf_idfs = self.lsa.transform(self.extractor.transform([tweet.text for tweet in tweets])).astype('float32')
-            inputs = torch.tensor(np.concatenate((bags, tf_idfs), axis=-1), dtype=torch.float, device=self.device)
+            inputs = tensor(np.concatenate((bags, tf_idfs), axis=-1), dtype=torch.float, device=self.device)
         else:
-            inputs = torch.tensor(bags, dtype=torch.float, device=self.device)
+            inputs = tensor(bags, dtype=torch.float, device=self.device)
+        return inputs 
+        
+    def predict(self, tweets: List[Tweet]) -> List[str]:
+        inputs = self.embedd(tweets)
         preds = self.core.forward(inputs).sigmoid().round().long().cpu().tolist()
         return list(map(preds_to_str, preds))
 
     def predict_scores(self, tweets: List[Tweet]) -> array:
-        bags = array([self.we(tweet.text).mean(axis=0)for tweet in tweets])
-        if self.lsa is not None and self.extractor is not None:
-            tf_idfs = self.lsa.transform(self.extractor.transform([tweet.text for tweet in tweets])).astype('float32')
-            inputs = torch.tensor(np.concatenate((bags, tf_idfs), axis=-1), dtype=torch.float, device=self.device)
-        else:
-            inputs = torch.tensor(bags, dtype=torch.float, device=self.device)
+        inputs = self.embedd(tweets)
         return self.core.forward(inputs).sigmoid().cpu().tolist()
 
 
