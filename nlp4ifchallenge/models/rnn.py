@@ -4,9 +4,13 @@ from .utils.embeddings import make_word_embedder
 from .training import train_epoch, eval_epoch
 
 import torch
+import os
 from torch import cat, stack
+from torch.nn.utils.rnn import pad_sequence
 from torch.nn import GRU, Dropout
 from adabelief_pytorch import AdaBelief
+
+SAVE_PATH = '../checkpoints'
 
 
 class MultiLabelRNN(Module, Model):
@@ -27,6 +31,28 @@ class MultiLabelRNN(Module, Model):
         context = self.dropout(context)
         out = self.cls(context)
         return out 
+
+
+class TrainedMultiLabelRNN(Module, Model):
+    def __init__(self,  
+                core: MultiLabelRNN,
+                word_embedder: WordEmbedder,
+                device: str):
+        super().__init__()
+        self.we = word_embedder
+        self.core = core
+        self.device = device
+
+    def predict(self, tweets: List[Tweet]) -> List[str]:
+        word_vectors = [tensor(self.we(tweet.text), dtype=torch.float, device=self.device) for tweet in tweets]
+        inputs = pad_sequence(word_vectors, batch_first=True)
+        preds = self.core.forward(inputs).sigmoid().round().long().cpu().tolist()
+        return list(map(preds_to_str, preds))
+
+    def predict_scores(self, tweets: List[Tweet]) -> array:
+        word_vectors = [tensor(self.we(tweet.text), dtype=torch.float, device=self.device) for tweet in tweets]
+        inputs = pad_sequence(word_vectors, batch_first=True)
+        return self.core.forward(inputs).sigmoid().cpu().tolist()
 
 
 def default_rnn():
@@ -51,6 +77,7 @@ def train_rnn(train_path: str = './nlp4ifchallenge/data/covid19_disinfo_binary_e
         num_epochs: int = 50,
         val_feq: int = 5,
         embeddings: str = 'glove_lg',
+        early_stop_patience: int = 6,
         device: str = 'cuda'):
 
     # random
@@ -73,6 +100,7 @@ def train_rnn(train_path: str = './nlp4ifchallenge/data/covid19_disinfo_binary_e
     loss_fn = BCEWithLogitsLoss(reduction='mean').to(device)
 
     train_log, dev_log = [], []
+    best, patience = 0., early_stop_patience
     for epoch in range(num_epochs):
         train_log.append(train_epoch(model, train_dl, optim, loss_fn, device))
         print(f'Epoch {epoch+1}/{num_epochs}')
@@ -85,6 +113,19 @@ def train_rnn(train_path: str = './nlp4ifchallenge/data/covid19_disinfo_binary_e
             print(f'{dev_log[-1]}')    
             print('----' * 50)
             print()
+
+            # model selection
+            if dev_log[-1]['mean_f1'] <= best:
+                patience -= 1
+                if not patience:
+                    print('\nEarly stopping...')
+                    break
+            else:
+                model_name = '_'.join([embeddings, 'rnn', '.p'])
+                torch.save(model.state_dict, os.path.join(SAVE_PATH, model_name))
+                best = dev_log[-1]['mean_f1']
+                patience = early_stop_patience
+
 
 if __name__ == "__main__":
     train_rnn()

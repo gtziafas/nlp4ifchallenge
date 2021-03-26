@@ -5,7 +5,6 @@ from abc import ABC
 
 from torch import Tensor, LongTensor, tensor
 from torch.optim import Optimizer
-from torch.nn.utils.rnn import pad_sequence
 from torch.utils.data import DataLoader
 import numpy as np 
 

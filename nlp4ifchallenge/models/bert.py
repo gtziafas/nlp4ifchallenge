@@ -41,7 +41,7 @@ class BERTLike(Module, Model):
 def collate_tuples(pairs: List[Tuple[Tensor, Tensor]], padding_value: int) -> Tuple[Tensor, Tensor]:
     xs, ys = list(zip(*pairs))
     return pad_sequence(xs, padding_value), stack(ys)
-
+    
 
 def pad_sequence(xs: List[Tensor], padding_value: int) -> Tensor:
     return _pad_sequence(xs, batch_first=True, padding_value=padding_value)
