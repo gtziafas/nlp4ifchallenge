@@ -67,7 +67,7 @@ def train_bert(name: str,
                device: str = 'cuda',
                batch_size: int = 1,
                num_epochs: int = 10):
-    # todo: early stopping & saving
+    save_path = f'./nlp4ifchallenge/checkpoints/{name}'
 
     torch.manual_seed(0)
     filterwarnings('ignore')
@@ -85,9 +85,14 @@ def train_bert(name: str,
     optimizer = AdaBelief(model.parameters(), lr=1e-05, weight_decay=1e-01, print_change_log=False)
 
     train_log, dev_log = [], []
+    best = 0.
     for epoch in range(num_epochs):
         train_log.append(train_epoch(model, train_dl, optimizer, criterion, device))
         print(train_log[-1])
         dev_log.append(eval_epoch(model, dev_dl, criterion, device))
         print(dev_log[-1])
         print('=' * 64)
+        mean_f1 = dev_log[-1]['mean_f1']
+        if mean_f1 > best:
+            best = mean_f1
+            torch.save(model.state_dict(), f'{save_path}/model.p')

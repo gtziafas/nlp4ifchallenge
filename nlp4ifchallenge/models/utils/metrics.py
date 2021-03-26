@@ -1,10 +1,13 @@
 from ...types import * 
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score, hamming_loss
-from ..bert import preds_to_str
 
 
 def _round(x: float) -> float:
     return round(x, 3)
+
+
+def preds_to_str(preds: List[int]) -> str:
+    return '\t'.join(['nan' if preds[0] == 0 and 0 < i < 5 else 'yes' if p == 1 else 'no' for i, p in enumerate(preds)])
 
 
 def get_metrics(preds: List[List[int]], labels: List[List[int]]) -> Dict[str, float]:

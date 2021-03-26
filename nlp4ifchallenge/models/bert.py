@@ -2,6 +2,7 @@ from ..types import *
 from ..preprocessing import *
 from torch import tensor, long, stack
 from torch.nn.utils.rnn import pad_sequence as _pad_sequence
+from .utils.metrics import preds_to_str
 
 from transformers import AutoModel, AutoTokenizer
 
@@ -39,10 +40,6 @@ class BERTLike(Module, Model):
 def collate_tuples(pairs: List[Tuple[Tensor, Tensor]], padding_value: int) -> Tuple[Tensor, Tensor]:
     xs, ys = list(zip(*pairs))
     return pad_sequence(xs, padding_value), stack(ys)
-
-
-def preds_to_str(preds: List[int]) -> str:
-    return '\t'.join(['nan' if preds[0] == 0 and 0 < i < 5 else 'yes' if p == 1 else 'no' for i, p in enumerate(preds)])
 
 
 def pad_sequence(xs: List[Tensor], padding_value: int) -> Tensor:
