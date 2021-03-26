@@ -126,6 +126,14 @@ def train_rnn(train_path: str = './nlp4ifchallenge/data/covid19_disinfo_binary_e
                 best = dev_log[-1]['mean_f1']
                 patience = early_stop_patience
 
+    # save all stuff
+    state_dict = torch.load(os.path.join(SAVE_PATH, model_name))
+    all_stuff = {'model_state_dict': state_dict, 
+                 'word_embedder': we, 
+                 'device': device,
+                 'faith': array([c['f1'] for c in best['column_wise']])}
+    torch.save(all_stuff, os.path.join(SAVE_PATH, model_name))
+
 
 if __name__ == "__main__":
     train_rnn()
