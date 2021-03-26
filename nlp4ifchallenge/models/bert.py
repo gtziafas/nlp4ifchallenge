@@ -15,7 +15,6 @@ class BERTLike(Module, Model):
         self.max_length = max_length
         self.dropout = Dropout(dropout_rate)
         self.classifier = Linear(model_dim, 7)
-        self.faith = array([0.] * 7)
 
     def tensorize_labeled(self, tweets: List[LabeledTweet]) -> List[Tuple[Tensor, Tensor]]:
         return [tokenize_labeled(tweet, self.tokenizer, max_length=self.max_length) for tweet in tweets]
@@ -41,7 +40,7 @@ class BERTLike(Module, Model):
 def collate_tuples(pairs: List[Tuple[Tensor, Tensor]], padding_value: int) -> Tuple[Tensor, Tensor]:
     xs, ys = list(zip(*pairs))
     return pad_sequence(xs, padding_value), stack(ys)
-    
+
 
 def pad_sequence(xs: List[Tensor], padding_value: int) -> Tensor:
     return _pad_sequence(xs, batch_first=True, padding_value=padding_value)

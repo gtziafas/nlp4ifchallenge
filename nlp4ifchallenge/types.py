@@ -29,7 +29,6 @@ class LabeledTweet(Tweet):
 
 
 class Model(ABC):
-    faith: array
 
     def predict(self, tweets: List[Tweet]) -> List[str]:
         ...
