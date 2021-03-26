@@ -15,6 +15,7 @@ class BERTLike(Module, Model):
         self.max_length = max_length
         self.dropout = Dropout(dropout_rate)
         self.classifier = Linear(model_dim, 7)
+        self.faith = array([0.] * 7)
 
     def tensorize_labeled(self, tweets: List[LabeledTweet]) -> List[Tuple[Tensor, Tensor]]:
         return [tokenize_labeled(tweet, self.tokenizer, max_length=self.max_length) for tweet in tweets]

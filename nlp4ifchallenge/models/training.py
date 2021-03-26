@@ -8,7 +8,7 @@ from sklearn.utils.class_weight import compute_class_weight
 import torch
 
 
-def train_epoch(model: Module, dl: DataLoader, optim: Optimizer, loss_fn: Module, device: str) -> Dict[str, float]:
+def train_epoch(model: Module, dl: DataLoader, optim: Optimizer, loss_fn: Module, device: str) -> Dict[str, Any]:
     model.train()
 
     epoch_loss = 0.
@@ -37,7 +37,7 @@ def train_epoch(model: Module, dl: DataLoader, optim: Optimizer, loss_fn: Module
 
 
 @torch.no_grad()
-def eval_epoch(model: Module, dl: DataLoader, loss_fn: Module, device: str) -> Dict[str, float]:
+def eval_epoch(model: Module, dl: DataLoader, loss_fn: Module, device: str) -> Dict[str, Any]:
     model.eval()
 
     epoch_loss = 0.
@@ -95,4 +95,6 @@ def train_bert(name: str,
         mean_f1 = dev_log[-1]['mean_f1']
         if mean_f1 > best:
             best = mean_f1
-            torch.save(model.state_dict(), f'{save_path}/model.p')
+            faith = array([c['f1'] for c in dev_log[-1]['column_wise']])
+            torch.save(
+                {'faith': faith, 'state_dict': model.state_dict()}, f'{save_path}/model.p')

@@ -10,7 +10,7 @@ def preds_to_str(preds: List[int]) -> str:
     return '\t'.join(['nan' if preds[0] == 0 and 0 < i < 5 else 'yes' if p == 1 else 'no' for i, p in enumerate(preds)])
 
 
-def get_metrics(preds: List[List[int]], labels: List[List[int]]) -> Dict[str, float]:
+def get_metrics(preds: List[List[int]], labels: List[List[int]]) -> Dict[str, Any]:
     preds_ = [preds_to_str(p).split('\t') for p in preds]
     labels_ = [preds_to_str(l).split('\t') for l in labels]
     per_column_preds = list(zip(*preds_))
