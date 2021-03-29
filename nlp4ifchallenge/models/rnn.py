@@ -99,6 +99,7 @@ def train_rnn(train_path: str = './nlp4ifchallenge/data/covid19_disinfo_binary_e
 
     # model, optim, loss 
     model = default_rnn().to(device)
+    model_name = '_'.join([embeddings, 'rnn', '.p'])
     optim = AdaBelief(model.parameters(), lr=1e-03, weight_decay=1e-02)
     loss_fn = BCEWithLogitsLoss(reduction='mean').to(device)
 
