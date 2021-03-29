@@ -3,7 +3,7 @@ from typing import Optional as Maybe
 from dataclasses import dataclass
 from abc import ABC
 
-from torch import Tensor, LongTensor, tensor
+from torch import Tensor, LongTensor
 from torch.optim import Optimizer
 from torch.utils.data import DataLoader
 import numpy as np 

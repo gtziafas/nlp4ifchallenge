@@ -1,10 +1,12 @@
 from ..types import *
 from ..preprocessing import *
-from torch import tensor, long, stack
+from torch import tensor, long, stack, manual_seed
 from torch.nn.utils.rnn import pad_sequence as _pad_sequence
 from .utils.metrics import preds_to_str
 
 from transformers import AutoModel, AutoTokenizer
+from warnings import filterwarnings
+from adabelief_pytorch import AdaBelief
 
 
 class BERTLike(Module, Model):
@@ -87,14 +89,15 @@ def make_model(name: str) -> BERTLike:
 
 
 def train_bert(name: str,
-               train_path: str = './nlp4ifchallenge/data/covid19_disinfo_binary_english_train.tsv',
-               dev_path: str = './nlp4ifchallenge/data/covid19_disinfo_binary_english_dev_input.tsv',
+               train_path: str = './nlp4ifchallenge/data/english/covid19_disinfo_binary_english_train.tsv',
+               dev_path: str = './nlp4ifchallenge/data/english/covid19_disinfo_binary_english_dev_input.tsv',
                test_path: str = '',
                device: str = 'cuda',
-               batch_size: int = 1,
+               batch_size: int = 16,
                num_epochs: int = 10,
+               save_path = f'./nlp4ifchallenge/checkpoints',
                with_class_weights: bool = True):
-    save_path = f'./nlp4ifchallenge/checkpoints/{name}'
+    save_path = '/'.join([save_path, name])
 
     torch.manual_seed(0)
     filterwarnings('ignore')
