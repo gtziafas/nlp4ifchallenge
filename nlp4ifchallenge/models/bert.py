@@ -92,7 +92,8 @@ def train_bert(name: str,
                test_path: str = '',
                device: str = 'cuda',
                batch_size: int = 1,
-               num_epochs: int = 10):
+               num_epochs: int = 10,
+               with_class_weights: bool = True):
     save_path = f'./nlp4ifchallenge/checkpoints/{name}'
 
     torch.manual_seed(0)
@@ -107,7 +108,8 @@ def train_bert(name: str,
                           collate_fn=lambda batch: collate_tuples(batch, model.tokenizer.pad_token_id), shuffle=False)
 
     class_weights = tensor([0.6223, 12.6667,  1.0594,  2.9561,  2.0473,  3.4653,  1.6374], device=device)
-    criterion = BCEWithLogitsLoss(pos_weight=class_weights)
+    #criterion = BCEWithLogitsLoss(pos_weight=class_weights)
+    criterion = BCEWithLogitsLoss() if not with_class_weights else BCEWithLogitsLoss(pos_weight=class_weights)
     optimizer = AdaBelief(model.parameters(), lr=1e-05, weight_decay=1e-01, print_change_log=False)
 
     train_log, dev_log = [], []
