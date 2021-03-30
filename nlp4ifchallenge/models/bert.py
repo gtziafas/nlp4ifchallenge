@@ -4,10 +4,10 @@ from .utils.metrics import preds_to_str
 from .training import train_epoch, eval_epoch
 from torch import tensor, long, stack, manual_seed, save
 from torch.nn.utils.rnn import pad_sequence as _pad_sequence
+from torch.optim import AdamW 
 
 from transformers import AutoModel, AutoTokenizer
 from warnings import filterwarnings
-from adabelief_pytorch import AdaBelief
 import sys
 import os
 
@@ -94,6 +94,20 @@ def make_model(name: str) -> BERTLike:
         return BERTLike(name='digitalepidemiologylab/covid-twitter-bert-v2', model_dim=1024)
     elif name == 'vinai-covid':
         return BERTLike(name='vinai/bertweet-covid19-base-cased', max_length=128)
+    elif name == 'vinai-tweet':
+        return BERTLike(name='vinai/bertweet-base', max_length=128)
+    elif name == 'cardiffnlp-tweet':
+        return BERTLike(name='cardiffnlp/twitter-roberta-base')
+    elif name == 'cardiffnlp-sentiment':
+        return BERTLike(name='cardiffnlp/twitter-roberta-base-sentiment')
+    elif name == 'cardiffnlp-hate':
+        return BERTLike(name='cardiffnlp/twitter-roberta-base-hate')
+    elif name == 'cardiffnlp-emotion':
+        return BERTLike(name='cardiffnlp/twitter-roberta-base-emotion')
+    elif name == 'cardiffnlp-offensive':
+        return BERTLike(name='cardiffnlp/twitter-roberta-base-offensive')
+    elif name == 'cardiffnlp-irony':
+        return BERTLike(name='cardiffnlp/twitter-roberta-base-irony')
     
     # multi-lingual models
     elif name == 'multi-bert':
@@ -108,6 +122,7 @@ def make_model(name: str) -> BERTLike:
         return BERTLike(name='socialmediaie/TRAC2020_ALL_C_bert-base-multilingual-uncased')
     elif name == 'multi-toxic':
         return BERTLike(name='unitary/multilingual-toxic-xlm-roberta')
+
     else:
         raise ValueError(f'unknown name {name}')
 
@@ -142,10 +157,11 @@ def train_bert(name: str,
         test_dl = DataLoader(model.tensorize_labeled(test_ds), batch_size=batch_size,
                           collate_fn=lambda batch: collate_tuples(batch, model.tokenizer.pad_token_id), shuffle=False)
 
-    class_weights = tensor([0.6223, 12.6667,  1.0594,  2.9561,  2.0473,  3.4653,  1.6374], device=device)
+    class_weights = tensor([0.6223021582733813, 6.151515151515151, 0.2328767123287671, 1.4210526315789473, 0.8783783783783784, 3.4455445544554455, 1.6023391812865497], dtype=torch.float, device=device)
+    #class_weights = tensor([0.6223, 12.6667,  1.0594,  2.9561,  2.0473,  3.4653,  1.6374], device=device)
     #criterion = BCEWithLogitsLoss(pos_weight=class_weights)
     criterion = BCEWithLogitsLoss() if not with_class_weights else BCEWithLogitsLoss(pos_weight=class_weights)
-    optimizer = AdaBelief(model.parameters(), lr=1e-05, weight_decay=1e-01, print_change_log=False)
+    optimizer = AdamW(model.parameters(), lr=1e-05, weight_decay=1e-02, print_change_log=False)
 
     train_log, dev_log, test_log = [], [], []
     best = 0.
