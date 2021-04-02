@@ -118,7 +118,8 @@ def tokenize_labels(labels: List[List[Label]], device: str = 'cpu') -> List[Long
     return list(map(_tokenize_labels, labels))
 
 
-def collate_tuples(tuples: List[Tuple[Tensor, Maybe[Tensor], Tensor]], padding_value: int = 0, device: str = 'cpu') -> Tuple[MaybeTensorPair, LongTensor]:
+def collate_tuples(tuples: List[Tuple[Tensor, Maybe[Tensor], LongTensor]], 
+        padding_value: int = 0, device: str = 'cpu') -> Tuple[MaybeTensorPair, LongTensor]:
     xs, ts, ys = zip(*tuples)
     xs = pad_sequence(xs, padding_value).to(device)
     ts = None if ts[0] is None else stack(ts, dim=0).float().to(device)
