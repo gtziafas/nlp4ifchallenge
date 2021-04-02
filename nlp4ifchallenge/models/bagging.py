@@ -1,6 +1,7 @@
 from ..types import *
 from ..utils.embeddings import WordEmbedder, make_word_embedder
 from ..utils.tf_idf import extract_tf_idfs, TfIdfTransform
+from ..utils.metrics import preds_to_str
 
 from torch.nn import Module, Linear, GRU, Dropout, GELU, Sequential
 from torch.nn.utils.rnn import pad_sequence as _pad_sequence
@@ -46,9 +47,10 @@ class BaggingModelTest(BaggingModel, Model):
             tf_idfs = tensor(self.tf_idf.transform(text), dtype=floatt, device=self.device)
         return word_embedds, tf_idfs
 
-    def predict(self, tweets: List[Tweet]) -> List[int]:
+    def predict(self, tweets: List[Tweet]) -> List[str]:
         inputs = self.embedd(tweets)
-        return self.forward(inputs).sigmoid().round().long().cpu().tolist()
+        preds = self.forward(inputs).sigmoid().round().long().cpu().tolist()
+        return [preds_to_str(sample) for sample in preds]
 
     def predict_scores(self, tweets: List[Tweet]) -> array:
         inputs = self.embedd(tweets)
@@ -61,7 +63,7 @@ class BagOfEmbeddings(Module):
         super().__init__()
 
     def forward(self, x: Tensor) -> Tensor:
-        return x.mean(dim=1).squeeze() # B, S, D -> B, D
+        return x.mean(dim=1) # B, S, D -> B, D
 
 
 # bi-GRU contextualization as aggregator
@@ -94,8 +96,8 @@ class MLPHead(Module):
 
 
 def tensorize_unlabeled(tweets: List[Tweet], we: WordEmbedder, tf_idf: Maybe[TfIdfTransform], device: str = 'cpu') -> List[MaybeTensorPair]:
-    text = [sent.text for sent in tweets]
-    word_embedds = [tensor(sent, dtype=floatt, device=device) for sent in we(text)]
+    text = [tweet.text for tweet in tweets]
+    word_embedds = [tensor(tweet, dtype=floatt, device=device) for tweet in we(text)]
     tfs = [None] * len(text)
     if tf_idf is not None:
         tfs = tf_idf.transform(text)
@@ -104,8 +106,8 @@ def tensorize_unlabeled(tweets: List[Tweet], we: WordEmbedder, tf_idf: Maybe[TfI
 
 
 def tensorize_labeled(tweets: List[AnnotatedSentence], *args, **kwargs) -> List[Tuple[Tensor, Maybe[Tensor], Tensor]]:
-    unlabeled = tensorize_unlabeled([Tweet(sent.no, sent.text) for sent in tweets], *args, **kwargs)
-    labels = tokenize_labels([sent.labels for sent in tweets])
+    unlabeled = tensorize_unlabeled([Tweet(tweet.no, tweet.text) for tweet in tweets], *args, **kwargs)
+    labels = tokenize_labels([tweet.labels for tweet in tweets])
     return [(inp[0], inp[1], label) for inp, label in zip(unlabeled, labels)]
 
 
