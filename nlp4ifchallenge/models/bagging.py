@@ -114,7 +114,7 @@ def tensorize_labeled(tweets: List[LabeledTweet], *args, **kwargs) -> List[Tuple
 
 def tokenize_labels(labels: List[List[Label]], device: str = 'cpu') -> List[Tensor]:
     def _tokenize_labels(_labels: List[Label]) -> Tensor:
-        return tensor([0 if label is False or label is None else 1 for label in _labels], dtype=longt)
+        return tensor([0 if label is False or label is None else 1 for label in _labels], dtype=longt, device=device)
     return list(map(_tokenize_labels, labels))
 
 
