@@ -106,19 +106,19 @@ def tensorize_unlabeled(tweets: List[Tweet], we: WordEmbedder, tf_idf: Maybe[TfI
     return list(zip(word_embedds, tfs))
 
 
-def tensorize_labeled(tweets: List[LabeledTweet], *args, **kwargs) -> List[Tuple[Tensor, Maybe[Tensor], Tensor]]:
+def tensorize_labeled(tweets: List[LabeledTweet], *args, **kwargs) -> List[Tuple[Tensor, Maybe[Tensor], LongTensor]]:
     unlabeled = tensorize_unlabeled([Tweet(tweet.no, tweet.text) for tweet in tweets], *args, **kwargs)
     labels = tokenize_labels([tweet.labels for tweet in tweets])
     return [(inp[0], inp[1], label) for inp, label in zip(unlabeled, labels)]
 
 
-def tokenize_labels(labels: List[List[Label]], device: str = 'cpu') -> List[Tensor]:
-    def _tokenize_labels(_labels: List[Label]) -> Tensor:
+def tokenize_labels(labels: List[List[Label]], device: str = 'cpu') -> List[LongTensor]:
+    def _tokenize_labels(_labels: List[Label]) -> LongTensor:
         return tensor([0 if label is False or label is None else 1 for label in _labels], dtype=longt, device=device)
     return list(map(_tokenize_labels, labels))
 
 
-def collate_tuples(tuples: List[Tuple[Tensor, Maybe[Tensor], Tensor]], padding_value: int = 0, device: str = 'cpu') -> Tuple[MaybeTensorPair, Tensor]:
+def collate_tuples(tuples: List[Tuple[Tensor, Maybe[Tensor], Tensor]], padding_value: int = 0, device: str = 'cpu') -> Tuple[MaybeTensorPair, LongTensor]:
     xs, ts, ys = zip(*tuples)
     xs = pad_sequence(xs, padding_value).to(device)
     ts = None if ts[0] is None else stack(ts, dim=0).float().to(device)

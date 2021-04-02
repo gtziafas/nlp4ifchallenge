@@ -41,7 +41,7 @@ class BERTLike(Module, Model):
         return [preds_to_str(sample) for sample in preds]
 
 
-def collate_tuples(pairs: List[Tuple[Tensor, Tensor]], padding_value: int, device: str = 'cpu') -> Tuple[Tensor, Tensor]:
+def collate_tuples(pairs: List[Tuple[Tensor, Tensor]], padding_value: int, device: str = 'cpu') -> Tuple[Tensor, LongTensor]:
     xs, ys = list(zip(*pairs))
     return pad_sequence(xs, padding_value).to(device), stack(ys).to(device)
 
@@ -54,7 +54,7 @@ def tokenize_text(text: str, tokenizer: AutoTokenizer, **kwargs) -> Tensor:
     return tensor(tokenizer.encode(text, truncation=True, **kwargs), dtype=longt)
 
 
-def tokenize_labels(labels: List[Label]) -> Tensor:
+def tokenize_labels(labels: List[Label]) -> LongTensor:
     return tensor([0 if label is False or label is None else 1 for label in labels], dtype=longt)
 
 
