@@ -5,7 +5,7 @@ from ..utils.metrics import preds_to_str
 
 from torch.nn import Module, Linear, GRU, Dropout, GELU, Sequential
 from torch.nn.utils.rnn import pad_sequence as _pad_sequence
-from torch import tensor, stack, cat
+from torch import tensor, stack, cat, tanh
 
 MaybeTensorPair = Tuple[Tensor, Maybe[Tensor]]
 
@@ -21,7 +21,8 @@ class BaggingModel(Module):
     def pool(self, x: Tensor, t: Maybe[Tensor]) -> Tensor:
         pooler = self.aggregator(x)
         if t is not None:
-            pooler = cat((pooler, t), dim=-1)
+            gating = tanh if pooler.min().item() < 0 else lambda x: x
+            pooler = cat((pooler, gating(t)), dim=-1)
         return pooler
 
     def forward(self, inputs: MaybeTensorPair) -> Tensor:
@@ -131,17 +132,19 @@ def pad_sequence(xs: List[Tensor], padding_value: int) -> Tensor:
 
 def make_model(kwargs: Dict) -> BaggingModel:
     if kwargs['aggregator'] == 'BoE':
+        inp_dim = kwargs['inp_dim']
         _agg = BagOfEmbeddings()
     
     elif kwargs['aggregator'] == 'RNN':
+        inp_dim = 2 * kwargs['hidden_dim_rnn']
         _agg = RNNContext(kwargs['inp_dim'], kwargs['hidden_dim_rnn'])
 
     else:
         raise ValueError(f'unknown aggregator method {kwargs["aggregator"]}')
 
-    if not kwargs['hidden_dim']:
-        _cls = Linear(kwwargs['inp_dim'], kwargs['num_classes']) 
+    if not kwargs['hidden_dim_mlp']:
+        _cls = Linear(inp_dim, kwargs['num_classes']) 
     else: 
-        _cls = MLPHead(kwargs['inp_dim'] + kwargs['with_tf_idf'], kwargs['hidden_dim_mlp'], kwargs['num_classes'], kwargs['dropout'])
+        _cls = MLPHead(inp_dim + kwargs['with_tf_idf'], kwargs['hidden_dim_mlp'], kwargs['num_classes'], kwargs['dropout'])
 
     return BaggingModel(aggregator=_agg, classifier=_cls)

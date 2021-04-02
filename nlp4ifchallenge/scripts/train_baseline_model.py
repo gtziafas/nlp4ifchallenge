@@ -83,7 +83,7 @@ def main(embeddings: str,
 
 
     save_path = '/'.join([save_path, 
-        '_'.join([embeddings, 'tf' + str(with_tf_idf), 'H' + str(hidden_dim)])])
+        '_'.join([embeddings, 'tf' + str(with_tf_idf), 'H' + str(hidden_dim_mlp)])])
     if not os.path.isdir(save_path):
         os.mkdir(save_path)
 
@@ -105,7 +105,7 @@ if __name__ == "__main__":
     parser.add_argument('-agg', '--aggregator', help='aggregation method (Boe or RNN)', type=str)
     parser.add_argument('-di', '--inp_dim', help='embedding size', type=int, default=300)
     parser.add_argument('-dh', '--hidden_dim_mlp', help='size of MLP hidden layer (0 to ommit)', type=int, default=128)
-    parser.add_argument('-drnn', '--hidden_dim_rnn', help='hidden size of RNN aggregator', int, default=150)
+    parser.add_argument('-drnn', '--hidden_dim_rnn', help='hidden size of RNN aggregator', type=int, default=150)
     parser.add_argument('-c', '--num_classes', help='number of target classes', type=int, default=7)
     parser.add_argument('-tr', '--train_path', help='path to the training data tsv', type=str, default='/home/s3913171/nlp4ifchallenge/data/english/covid19_disinfo_binary_english_train.tsv')
     parser.add_argument('-dev', '--dev_path', help='path to the development data tsv', type=str, default='/home/s3913171/nlp4ifchallenge/data/english/covid19_disinfo_binary_english_dev_input.tsv')
