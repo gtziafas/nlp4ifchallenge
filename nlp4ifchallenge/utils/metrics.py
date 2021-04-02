@@ -1,4 +1,4 @@
-from ...types import * 
+from ..types import * 
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score, hamming_loss
 
 

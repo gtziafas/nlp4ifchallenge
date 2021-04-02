@@ -1,5 +1,5 @@
 from ..types import *
-from .utils.metrics import get_metrics
+from ..utils.metrics import get_metrics
 
 from torch.nn import Module
 import torch

@@ -6,8 +6,8 @@ from ..utils.training import train_epoch, eval_epoch
 from ..utils.tf_idf import TfIdfTransform, extract_tf_idfs
 
 from torch import manual_seed, save, tensor
-from torch.optim import AdamW
 from torch.nn import Module, BCEWithLogitsLoss
+from torch.optim import AdamW
 
 from warnings import filterwarnings
 import sys
@@ -36,8 +36,7 @@ def main(embeddings: str,
         num_epochs: int,
         learning_rate: float,
         weight_decay: float,
-        save_path: str,
-        kfold: int):
+        save_path: str):
 
     # an independent function to train once over desired num of epochs
     def train(train_ds: List[LabeledTweet], dev_ds: List[LabeledTweet], test_ds: Maybe[List[LabeledTweet]]) -> Tuple[List[Dict[str, Any]], int]:
@@ -54,12 +53,11 @@ def main(embeddings: str,
             _, tf_idf_transform = extract_tf_idfs([s.text for s in train_ds], lsa_components=with_tf_idf)
 
         train_dl = DataLoader(tensorize_labeled(train_ds, we, tf_idf_transform), batch_size=batch_size,
-                              collate_fn=lambda batch: collate_tuples(batch, model.tokenizer.pad_token_id), shuffle=True)
+                              collate_fn=collate_tuples, shuffle=True)
         dev_dl = DataLoader(tensorize_labeled(dev_ds, we, tf_idf_transform), batch_size=batch_size,
-                              collate_fn=lambda batch: collate_tuples(batch, model.tokenizer.pad_token_id), shuffle=False)
+                              collate_fn=collate_tuples, shuffle=False)
         test_dl = DataLoader(tensorize_labeled(test_ds, we, tf_idf_transform), batch_size=batch_size,
-                              collate_fn=lambda batch: collate_tuples(batch, model.tokenizer.pad_token_id), 
-                              shuffle=False) if test_ds is not None else None
+                              collate_fn=collate_tuples, shuffle=False) if test_ds is not None else None
         
         train_log, dev_log, test_log = [], [], []
         best = 0
@@ -115,7 +113,6 @@ if __name__ == "__main__":
     parser.add_argument('-e', '--num_epochs', help='how many epochs of training', type=int, default=100)
     parser.add_argument('-s', '--save_path', help='where to save best model', type=str, default=SAVE_PREFIX)
     parser.add_argument('-wd', '--weight_decay', help='weight decay to use for regularization', type=float, default=1e-02)
-    parser.add_argument('-kfold', '--kfold', help='k-fold cross validation', type=int, default=0)
     parser.add_argument('-dr', '--dropout', help='model dropout to use in training', type=float, default=0.25)
     parser.add_argument('-lr', '--learning_rate', help='learning rate to use in optimizer', type=float, default=1e-03)
     
