@@ -1,7 +1,7 @@
 from ..types import *
 import torch
 
-WordEmbedder = Callable[[Sentence], array]
+WordEmbedder = Callable[[List[str]], array]
 
 
 # pre-trained GloVe embeddings with glove_dim=300
@@ -21,9 +21,9 @@ def glove_embeddings(version: str) -> WordEmbedder:
 def frozen_bert_embeddings(name: str, **kwargs) -> WordEmbedder:
     from ..models.bert import BertLike
     model = BertLike(name=name, **kwargs)
-    def embedd_many(sents: Sentences) -> array:
+    def embedd_many(sents: List[List[str]]) -> array:
         tokens = stack(model.tensorize_labeled(sents))
-        attention_mask = tokens.ne(tokenizer.pad_token_id)
+        attention_mask = tokens.ne(model.tokenizer.pad_token_id)
         hidden, _ = model(tokens, attention_mask, output_hidden_states=True, return_dict=False).squeeze()
         return hidden.cpu().numpy()
     return embedd_many
