@@ -38,15 +38,15 @@ def train_bert(name: str,
 
     train_ds, dev_ds = read_labeled(train_path), read_labeled(dev_path)
     train_dl = DataLoader(model.tensorize_labeled(train_ds), batch_size=batch_size,
-                          collate_fn=lambda batch: collate_tuples(batch, model.tokenizer.pad_token_id), shuffle=True)
+                          collate_fn=lambda b: collate_tuples(b, model.tokenizer.pad_token_id, device), shuffle=True)
     dev_dl = DataLoader(model.tensorize_labeled(dev_ds), batch_size=batch_size,
-                          collate_fn=lambda batch: collate_tuples(batch, model.tokenizer.pad_token_id), shuffle=False)
+                          collate_fn=lambda b: collate_tuples(b, model.tokenizer.pad_token_id, device), shuffle=False)
 
     # if provided test path 
     if test_path != '':
         test_ds = read_labeled(test_path)
         test_dl = DataLoader(model.tensorize_labeled(test_ds), batch_size=batch_size,
-                          collate_fn=lambda batch: collate_tuples(batch, model.tokenizer.pad_token_id), shuffle=False)
+                          collate_fn=lambda b: collate_tuples(b, model.tokenizer.pad_token_id, device), shuffle=False)
 
     class_weights = tensor([
         0.6223021582733813, 

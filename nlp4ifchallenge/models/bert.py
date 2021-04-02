@@ -41,9 +41,9 @@ class BERTLike(Module, Model):
         return [preds_to_str(sample) for sample in preds]
 
 
-def collate_tuples(pairs: List[Tuple[Tensor, Tensor]], padding_value: int) -> Tuple[Tensor, Tensor]:
+def collate_tuples(pairs: List[Tuple[Tensor, Tensor]], padding_value: int, device: str = 'cpu') -> Tuple[Tensor, Tensor]:
     xs, ys = list(zip(*pairs))
-    return pad_sequence(xs, padding_value), stack(ys)
+    return pad_sequence(xs, padding_value).to(device), stack(ys).to(device)
 
 
 def pad_sequence(xs: List[Tensor], padding_value: int) -> Tensor:
