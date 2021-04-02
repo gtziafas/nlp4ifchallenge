@@ -23,8 +23,8 @@ def get_metrics(preds: List[List[int]], labels: List[List[int]]) -> Dict[str, An
     return {'accuracy': _round(accuracy_score(array(preds), array(labels))),
             'hamming': _round(1 - hamming_loss(array(preds), array(labels))),
             'mean_f1': _round(sum(f1s)/len(f1s)),
-            'mean_p': _round(sum(ps)/len(ps)),
-            'mean_r': _round(sum(rs)/len(rs)),
+            'mean_precision': _round(sum(ps)/len(ps)),
+            'mean_recall': _round(sum(rs)/len(rs)),
             'column_wise':
-                [{'f1': _round(f1), 'p': _round(p), 'r': _round(r)} for f1, p, r in per_column_metrics]
+                [{'f1': _round(f1), 'precision': _round(p), 'recall': _round(r)} for f1, p, r in per_column_metrics]
             }

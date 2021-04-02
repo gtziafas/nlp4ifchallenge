@@ -24,7 +24,7 @@ def frozen_bert_embeddings(name: str, **kwargs) -> WordEmbedder:
     def embedd_many(sents: List[List[str]]) -> array:
         tokens = stack(model.tensorize_labeled(sents))
         attention_mask = tokens.ne(model.tokenizer.pad_token_id)
-        hidden, _ = model(tokens, attention_mask, output_hidden_states=True, return_dict=False).squeeze()
+        hidden, _ = model(tokens, attention_mask, output_hidden_states=True, return_dict=False)
         return hidden.cpu().numpy()
     return embedd_many
 
