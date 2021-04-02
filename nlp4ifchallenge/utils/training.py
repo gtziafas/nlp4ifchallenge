@@ -13,9 +13,6 @@ def train_epoch(model: Module, dl: DataLoader, optim: Optimizer, loss_fn: Module
     all_labels: List[List[int]] = []
 
     for batch_idx, (x, y) in enumerate(dl):
-        # x = x.to(device)
-        # y = y.to(device)
-        
         # forward 
         predictions = model.forward(x)
         loss = loss_fn(predictions, y.float())
@@ -42,9 +39,6 @@ def eval_epoch(model: Module, dl: DataLoader, loss_fn: Module, device: str) -> D
     all_labels: List[List[int]] = []
 
     for batch_idx, (x, y) in enumerate(dl):
-        # x = x.to(device)
-        # y = y.to(device)
-
         # forward
         predictions = model.forward(x)
         loss = loss_fn(predictions, y.float())
