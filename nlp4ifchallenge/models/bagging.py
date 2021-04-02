@@ -105,15 +105,15 @@ def tensorize_unlabeled(tweets: List[Tweet], we: WordEmbedder, tf_idf: Maybe[TfI
     return list(zip(word_embedds, tfs))
 
 
-def tensorize_labeled(tweets: List[AnnotatedSentence], *args, **kwargs) -> List[Tuple[Tensor, Maybe[Tensor], Tensor]]:
+def tensorize_labeled(tweets: List[LabeledTweet], *args, **kwargs) -> List[Tuple[Tensor, Maybe[Tensor], Tensor]]:
     unlabeled = tensorize_unlabeled([Tweet(tweet.no, tweet.text) for tweet in tweets], *args, **kwargs)
     labels = tokenize_labels([tweet.labels for tweet in tweets])
     return [(inp[0], inp[1], label) for inp, label in zip(unlabeled, labels)]
 
 
 def tokenize_labels(labels: List[List[Label]], device: str = 'cpu') -> List[Tensor]:
-    def _tokenize_labels(labels: List[Label]) -> Tensor:
-        return tensor([0 if label is False else 1 for label in labels], dtype=longt, device=device)
+    def _tokenize_labels(_labels: List[Label]) -> Tensor:
+        return tensor([0 if label is False or label is None else 1 for label in _labels], dtype=longt)
     return list(map(_tokenize_labels, labels))
 
 
