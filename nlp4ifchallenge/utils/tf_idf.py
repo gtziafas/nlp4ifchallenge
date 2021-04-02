@@ -7,8 +7,8 @@ TfIdfTransform = Pipeline
 
 
 def extract_tf_idfs(text: List[str],
-        word_ngram_range: Tuple[int, int] = (2, 5),
-        char_ngram_range: Tuple[int, int] = (3, 7),
+        word_ngram_range: Tuple[int, int] = (1, 3),
+        char_ngram_range: Tuple[int, int] = (3, 9),
         lsa_components: int = 100):
     print(f'{lsa_components} LSA components.')
 

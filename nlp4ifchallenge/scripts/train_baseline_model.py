@@ -25,7 +25,8 @@ def main(embeddings: str,
         with_tf_idf: int,
         aggregator: str,
         inp_dim: int,
-        hidden_dim: int,
+        hidden_dim_mlp: int,
+        hidden_dim_rnn: int,
         num_classes: int,
         dropout: float,
         train_path: str,
@@ -41,8 +42,8 @@ def main(embeddings: str,
     # an independent function to train once over desired num of epochs
     def train(train_ds: List[LabeledTweet], dev_ds: List[LabeledTweet], test_ds: Maybe[List[LabeledTweet]]) -> Tuple[List[Dict[str, Any]], int]:
         
-        model_kwargs = {'aggregator': aggregator, 'inp_dim': inp_dim, 'hidden_dim': hidden_dim, 
-            'num_classes': num_classes, 'dropout': dropout, 'with_tf_idf': with_tf_idf}
+        model_kwargs = {'aggregator': aggregator, 'inp_dim': inp_dim, 'hidden_dim_mlp': hidden_dim_mlp, 
+            'hidden_dim_rnn': hidden_dim_rnn, 'num_classes': num_classes, 'dropout': dropout, 'with_tf_idf': with_tf_idf}
         model = make_model(model_kwargs).to(device)
         criterion = BCEWithLogitsLoss().to(device)
         optimizer = AdamW(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
@@ -53,11 +54,11 @@ def main(embeddings: str,
             _, tf_idf_transform = extract_tf_idfs([s.text for s in train_ds], lsa_components=with_tf_idf)
 
         train_dl = DataLoader(tensorize_labeled(train_ds, we, tf_idf_transform), batch_size=batch_size,
-                              collate_fn=collate_tuples, shuffle=True)
+                              collate_fn=lambda b: collate_tuples(b, 0, device), shuffle=True)
         dev_dl = DataLoader(tensorize_labeled(dev_ds, we, tf_idf_transform), batch_size=batch_size,
-                              collate_fn=collate_tuples, shuffle=False)
+                              collate_fn=lambda b: collate_tuples(b, 0, device), shuffle=False)
         test_dl = DataLoader(tensorize_labeled(test_ds, we, tf_idf_transform), batch_size=batch_size,
-                              collate_fn=collate_tuples, shuffle=False) if test_ds is not None else None
+                              collate_fn=lambda b: collate_tuples(b, 0, device), shuffle=False) if test_ds is not None else None
         
         train_log, dev_log, test_log = [], [], []
         best = 0
@@ -67,7 +68,7 @@ def main(embeddings: str,
             dev_log.append(eval_epoch(model, dev_dl, criterion, device))
             sprint(dev_log[-1])
             sprint('=' * 64)
-            if dev_log[-1]['accuracy'] > dev_log[best]['accuracy']:
+            if dev_log[-1]['mean_f1'] > dev_log[best]['mean_f1']:
                 best = epoch
                 faith = array([c['f1'] for c in dev_log[-1]['column_wise']])
                 save(
@@ -99,14 +100,15 @@ def main(embeddings: str,
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('-emb', '--embeddings', help='what type of word embeddings to use', type=str, default='glove_lg')
+    parser.add_argument('-emb', '--embeddings', help='what type of word embeddings to use', type=str, default='glove_md')
     parser.add_argument('-tf', '--with_tf_idf', help='size of tf-idf components to use (0 for no tf-idfs)', type=int, default=100)
     parser.add_argument('-agg', '--aggregator', help='aggregation method (Boe or RNN)', type=str)
     parser.add_argument('-di', '--inp_dim', help='embedding size', type=int, default=300)
-    parser.add_argument('-dh', '--hidden_dim', help='size of MLP hidden layer (0 to ommit)', type=int, default=128)
-    parser.add_argument('-c', '--num_classes', help='number of target classes', type=int, default=8)
-    parser.add_argument('-tr', '--train_path', help='path to the training data tsv', type=str, default='~/nlp4ifchallenge/nlp4ifchallenge/data/enlgish/covid19_disinfo_binary_english_train.tsv')
-    parser.add_argument('-dev', '--dev_path', help='path to the development data tsv', type=str, default='~/nlp4ifchallenge/nlp4ifchallenge/data/enlgish/covid19_disinfo_binary_english_dev_input.tsv')
+    parser.add_argument('-dh', '--hidden_dim_mlp', help='size of MLP hidden layer (0 to ommit)', type=int, default=128)
+    parser.add_argument('-drnn', '--hidden_dim_rnn', help='hidden size of RNN aggregator', int, default=150)
+    parser.add_argument('-c', '--num_classes', help='number of target classes', type=int, default=7)
+    parser.add_argument('-tr', '--train_path', help='path to the training data tsv', type=str, default='/home/s3913171/nlp4ifchallenge/data/english/covid19_disinfo_binary_english_train.tsv')
+    parser.add_argument('-dev', '--dev_path', help='path to the development data tsv', type=str, default='/home/s3913171/nlp4ifchallenge/data/english/covid19_disinfo_binary_english_dev_input.tsv')
     parser.add_argument('-tst', '--test_path', help='path to the testing data tsv', type=str, default='')
     parser.add_argument('-d', '--device', help='cpu or cuda', type=str, default='cuda')
     parser.add_argument('-bs', '--batch_size', help='batch size to use for training', type=int, default=16)

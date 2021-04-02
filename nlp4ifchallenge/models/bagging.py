@@ -117,11 +117,11 @@ def tokenize_labels(labels: List[List[Label]], device: str = 'cpu') -> List[Tens
     return list(map(_tokenize_labels, labels))
 
 
-def collate_tuples(tuples: List[Tuple[Tensor, Maybe[Tensor], Tensor]], padding_value: int = 0) -> Tuple[MaybeTensorPair, Tensor]:
+def collate_tuples(tuples: List[Tuple[Tensor, Maybe[Tensor], Tensor]], padding_value: int = 0, device: str = 'cpu') -> Tuple[MaybeTensorPair, Tensor]:
     xs, ts, ys = zip(*tuples)
-    xs = pad_sequence(xs, padding_value)
-    ts = None if ts[0] is None else stack(ts, dim=0).float()
-    ys = stack(ys, dim=0)
+    xs = pad_sequence(xs, padding_value).to(device)
+    ts = None if ts[0] is None else stack(ts, dim=0).float().to(device)
+    ys = stack(ys, dim=0).to(device)
     return (xs, ts), ys
 
 
@@ -134,8 +134,7 @@ def make_model(kwargs: Dict) -> BaggingModel:
         _agg = BagOfEmbeddings()
     
     elif kwargs['aggregator'] == 'RNN':
-        inp_dim = kwargs['inp_dim']
-        _agg = RNNContext(inp_dim, inp_dim // 2)
+        _agg = RNNContext(kwargs['inp_dim'], kwargs['hidden_dim_rnn'])
 
     else:
         raise ValueError(f'unknown aggregator method {kwargs["aggregator"]}')
@@ -143,6 +142,6 @@ def make_model(kwargs: Dict) -> BaggingModel:
     if not kwargs['hidden_dim']:
         _cls = Linear(kwwargs['inp_dim'], kwargs['num_classes']) 
     else: 
-        _cls = MLPHead(kwargs['inp_dim'] + kwargs['with_tf_idf'], kwargs['hidden_dim'], kwargs['num_classes'], kwargs['dropout'])
+        _cls = MLPHead(kwargs['inp_dim'] + kwargs['with_tf_idf'], kwargs['hidden_dim_mlp'], kwargs['num_classes'], kwargs['dropout'])
 
     return BaggingModel(aggregator=_agg, classifier=_cls)
