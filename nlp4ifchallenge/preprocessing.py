@@ -27,3 +27,11 @@ def read_unlabeled(file_path: str) -> List[Tweet]:
 
 def tokenize_tweets(tweets: List[Tweet], tokenizer_fn: Callable[[Tweet], T1]) -> List[T1]:
     return [tokenizer_fn(tweet) for tweet in tweets]
+
+
+def extract_class_weights(file_path: str) -> List[float]:
+    data = read_labeled(file_path)
+    labels_per_q = list(zip(*[s.labels for s in data]))
+    qs_neg = [[label for label in q if label == False] for q in labels_per_q]
+    qs_pos = [[label for label in q if label == True] for q in labels_per_q]
+    return [len(n) / len(p) for n, p in zip(qs_neg, qs_pos)]

@@ -1,6 +1,6 @@
 from ..types import *
 from ..preprocessing import *
-from .utils.metrics import preds_to_str
+from ..utils.metrics import preds_to_str
 
 from torch import tensor, stack
 from torch.nn import Module, Linear, Dropout
@@ -11,14 +11,14 @@ from transformers import AutoModel, AutoTokenizer
 
 class BERTLike(Module, Model):
     def __init__(self, name: str, model_dim: int = 768, dropout_rate: float = 0.5, 
-            max_length: Maybe[int] = None, token_name: Maybe[str] = None):
+            num_classes: int = 7, max_length: Maybe[int] = None, token_name: Maybe[str] = None):
         super().__init__()
         self.token_name = name if token_name is None else token_name
         self.core = AutoModel.from_pretrained(name)
         self.tokenizer = AutoTokenizer.from_pretrained(self.token_name, use_fast=False)
         self.max_length = max_length
         self.dropout = Dropout(dropout_rate)
-        self.classifier = Linear(model_dim, 7)
+        self.classifier = Linear(model_dim, num_classes)
 
     def tensorize_labeled(self, tweets: List[LabeledTweet]) -> List[Tuple[Tensor, Tensor]]:
         return [tokenize_labeled(tweet, self.tokenizer, max_length=self.max_length) for tweet in tweets]

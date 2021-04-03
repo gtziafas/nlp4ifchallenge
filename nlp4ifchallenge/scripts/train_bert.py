@@ -1,5 +1,6 @@
 from ..types import *
 from ..models.bert import *
+from ..preprocessing import extract_class_weights
 from ..utils.training import train_epoch, eval_epoch
 
 from torch import manual_seed, save 
@@ -48,18 +49,9 @@ def train_bert(name: str,
         test_dl = DataLoader(model.tensorize_labeled(test_ds), batch_size=batch_size,
                           collate_fn=lambda b: collate_tuples(b, model.tokenizer.pad_token_id, device), shuffle=False)
 
-    class_weights = tensor([
-        0.6223021582733813, 
-        6.151515151515151, 
-        0.2328767123287671, 
-        1.4210526315789473, 
-        0.8783783783783784, 
-        3.4455445544554455, 
-        1.6023391812865497], dtype=floatt, device=device)
-    #class_weights = tensor([0.6223, 12.6667,  1.0594,  2.9561,  2.0473,  3.4653,  1.6374], device=device)
-    #criterion = BCEWithLogitsLoss(pos_weight=class_weights)
+    class_weights = tensor(extract_class_weights(train_path), dtype=floatt, device=device)
     criterion = BCEWithLogitsLoss() if not with_class_weights else BCEWithLogitsLoss(pos_weight=class_weights)
-    optimizer = AdamW(model.parameters(), lr=1e-05, weight_decay=1e-02, print_change_log=False)
+    optimizer = AdamW(model.parameters(), lr=3e-05, weight_decay=1e-02)
 
     train_log, dev_log, test_log = [], [], []
     best = 0.
@@ -82,13 +74,15 @@ def train_bert(name: str,
                 sprint(test_log[-1])
                 sprint('=' * 64)
 
+    print(f'\nResults: {best}')
+
 
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('-n', '--name', help='name of the BERT model to load', type=str)
-    parser.add_argument('-tr', '--train_path', help='path to the training data tsv', type=str, default='./nlp4ifchallenge/data/english/covid19_disinfo_binary_english_train.tsv')
-    parser.add_argument('-dev', '--dev_path', help='path to the development data tsv', type=str, default='./nlp4ifchallenge/data/english/covid19_disinfo_binary_english_dev_input.tsv')
+    parser.add_argument('-tr', '--train_path', help='path to the training data tsv', type=str, default='./data/english/covid19_disinfo_binary_english_train.tsv')
+    parser.add_argument('-dev', '--dev_path', help='path to the development data tsv', type=str, default='./data/english/covid19_disinfo_binary_english_dev_input.tsv')
     parser.add_argument('-tst', '--test_path', help='path to the testing data tsv', type=str, default='')
     parser.add_argument('-d', '--device', help='cpu or cuda', type=str, default='cuda')
     parser.add_argument('-bs', '--batch_size', help='batch size to use for training', type=int, default=16)
