@@ -56,9 +56,9 @@ def train_bert(name: str,
     train_log, dev_log, test_log = [], [], []
     best = 0.
     for epoch in range(num_epochs):
-        train_log.append(train_epoch(model, train_dl, optimizer, criterion, device))
+        train_log.append(train_epoch(model, train_dl, optimizer, criterion))
         sprint(train_log[-1])
-        dev_log.append(eval_epoch(model, dev_dl, criterion, device))
+        dev_log.append(eval_epoch(model, dev_dl, criterion))
         sprint(dev_log[-1])
         sprint('=' * 64)
         mean_f1 = dev_log[-1]['mean_f1']
@@ -69,7 +69,7 @@ def train_bert(name: str,
                 {'faith': faith, 'model_state_dict': model.state_dict()}, f'{save_path}/model.p')
             # eval on test set for each new best model
             if test_path != '':
-                test_log.append(eval_epoch(model, test_dl, criterion, device))
+                test_log.append(eval_epoch(model, test_dl, criterion))
                 sprint('\nTEST\n')
                 sprint(test_log[-1])
                 sprint('=' * 64)

@@ -5,7 +5,7 @@ from torch.nn import Module
 import torch
 
 
-def train_epoch(model: Module, dl: DataLoader, optim: Optimizer, loss_fn: Module, device: str) -> Dict[str, Any]:
+def train_epoch(model: Module, dl: DataLoader, optim: Optimizer, loss_fn: Module) -> Dict[str, Any]:
     model.train()
 
     epoch_loss = 0.
@@ -31,7 +31,7 @@ def train_epoch(model: Module, dl: DataLoader, optim: Optimizer, loss_fn: Module
 
 
 @torch.no_grad()
-def eval_epoch(model: Module, dl: DataLoader, loss_fn: Module, device: str) -> Dict[str, Any]:
+def eval_epoch(model: Module, dl: DataLoader, loss_fn: Module) -> Dict[str, Any]:
     model.eval()
 
     epoch_loss = 0.

@@ -63,9 +63,9 @@ def main(embeddings: str,
         train_log, dev_log, test_log = [], [], []
         best = 0
         for epoch in range(num_epochs):
-            train_log.append(train_epoch(model, train_dl, optimizer, criterion, device))
+            train_log.append(train_epoch(model, train_dl, optimizer, criterion))
             sprint(train_log[-1])
-            dev_log.append(eval_epoch(model, dev_dl, criterion, device))
+            dev_log.append(eval_epoch(model, dev_dl, criterion))
             sprint(dev_log[-1])
             sprint('=' * 64)
             if dev_log[-1]['mean_f1'] > dev_log[best]['mean_f1']:
@@ -75,7 +75,7 @@ def main(embeddings: str,
                     {'faith': faith, 'model_state_dict': model.state_dict()}, f'{save_path}/model.p')
                 # eval on test set for each new best model
                 if test_ds is not None:
-                    test_log.append(eval_epoch(model, test_dl, criterion, device))
+                    test_log.append(eval_epoch(model, test_dl, criterion))
                     sprint('\nTEST\n')
                     sprint(test_log[-1])
                     sprint('=' * 64)
