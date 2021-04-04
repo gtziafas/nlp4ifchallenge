@@ -49,12 +49,12 @@ def train_bert(name: str,
 
     trainer = Trainer(model, (train_dl, dev_dl), optimizer, criterion, target_metric='mean_f1', early_stopping=5, print_log=True)
 
-    best = trainer.iterate(num_epochs, with_save=SAVE_PREFIX, with_test=test_dl)
+    best = trainer.iterate(num_epochs, with_save='/'.join([save_path, 'model.p']), with_test=test_dl if test_path != '' else None)
     print(f'Results: {best}')
 
     # load best saved model and re-save with faiths 
-    faiths = array([c['mean_f1'] for c in best['column-wise']])
-    save({'faiths': faiths, 'model_state_dict': load(SAVE_PREFIX)}, SAVE_PREFIX)
+    faiths = array([c['f1'] for c in best['column_wise']])
+    save({'faiths': faiths, 'model_state_dict': load('/'.join([save_path, 'model.p']))}, SAVE_PREFIX)
 
 
 if __name__ == "__main__":

@@ -67,6 +67,7 @@ class Trainer(ABC):
         self.logs = {'train': [], 'dev': [], 'test': []}
         self.target_metric = target_metric
         self.trained_epochs = 0
+        self.print_log = print_log
         self.early_stop_patience = early_stopping
 
     def iterate(self, num_epochs: int, with_test: Maybe[DataLoader] = None, with_save: Maybe[str] = None) -> Dict[str, Any]:
@@ -104,10 +105,10 @@ class Trainer(ABC):
         # print if wanted
         if self.print_log:
             print('TRAIN:')
-            for k,v in self.logs['train'][-1]:
+            for k,v in self.logs['train'][-1].items():
                 print(f'{k} : {v}')
             print()
             print('DEV:')
-            for k,v in self.logs['dev'][-1]:
+            for k,v in self.logs['dev'][-1].items():
                 print(f'{k} : {v}')
-            print('====' * 64)
+            print('==' * 64)
