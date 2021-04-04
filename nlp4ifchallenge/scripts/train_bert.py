@@ -25,11 +25,12 @@ def train_bert(name: str,
     save_path = '/'.join([save_path, name])
     if not os.path.isdir(save_path):
         os.mkdir(save_path)
+    save_path = '/'.join([save_path, 'model.p'])
 
     manual_seed(0)
     filterwarnings('ignore')
 
-    model = make_model(name).to(device)
+    model = make_model(name, device)
 
     train_ds, dev_ds = read_labeled(train_path), read_labeled(dev_path)
     train_dl = DataLoader(model.tensorize_labeled(train_ds), batch_size=batch_size,
@@ -47,14 +48,14 @@ def train_bert(name: str,
     criterion = BCEWithLogitsLoss() if not with_class_weights else BCEWithLogitsLoss(pos_weight=class_weights)
     optimizer = AdamW(model.parameters(), lr=3e-05, weight_decay=1e-02)
 
-    trainer = Trainer(model, (train_dl, dev_dl), optimizer, criterion, target_metric='mean_f1', early_stopping=5, print_log=True)
+    trainer = Trainer(model, (train_dl, dev_dl), optimizer, criterion, target_metric='mean_f1', print_log=True)
 
-    best = trainer.iterate(num_epochs, with_save='/'.join([save_path, 'model.p']), with_test=test_dl if test_path != '' else None)
+    best = trainer.iterate(num_epochs, with_save=save_path, with_test=test_dl if test_path != '' else None)
     print(f'Results: {best}')
 
     # load best saved model and re-save with faiths 
     faiths = array([c['f1'] for c in best['column_wise']])
-    save({'faiths': faiths, 'model_state_dict': load('/'.join([save_path, 'model.p']))}, SAVE_PREFIX)
+    save({'faiths': faiths, 'model_state_dict': load(save_path)}, save_path)
 
 
 if __name__ == "__main__":
