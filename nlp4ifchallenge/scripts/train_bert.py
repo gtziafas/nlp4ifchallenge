@@ -30,7 +30,7 @@ def train_bert(name: str,
     manual_seed(0)
     filterwarnings('ignore')
 
-    model = make_model(name, device)
+    model = make_model(name).to(device)
 
     train_ds, dev_ds = read_labeled(train_path), read_labeled(dev_path)
     train_dl = DataLoader(model.tensorize_labeled(train_ds), batch_size=batch_size,
