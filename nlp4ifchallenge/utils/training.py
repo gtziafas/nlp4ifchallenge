@@ -68,7 +68,7 @@ class Trainer(ABC):
         self.target_metric = target_metric
         self.trained_epochs = 0
         self.print_log = print_log
-        self.early_stop_patience = early_stopping
+        self.early_stop_patience = early_stopping if early_stopping >0 else None
 
     def iterate(self, num_epochs: int, with_test: Maybe[DataLoader] = None, with_save: Maybe[str] = None) -> Dict[str, Any]:
         best = {self.target_metric: 0.}

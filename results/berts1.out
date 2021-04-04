@@ -29,7 +29,7 @@ Job details:
 ============
 
 Job ID              : 19066045
-Name                : cardiffnlp
+Name                : berts_english
 User                : s3913171
 Partition           : gpu
 Nodes               : pg-gpu33

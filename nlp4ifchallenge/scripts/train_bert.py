@@ -1,7 +1,7 @@
 from ..types import *
 from ..models.bert import *
-from ..preprocessing import extract_class_weights
 from ..utils.training import Trainer
+from ..preprocessing import read_labeled, extract_class_weights
 
 from torch import manual_seed, save, load
 from torch.nn import Module, BCEWithLogitsLoss
@@ -56,8 +56,7 @@ def main(name: str,
     criterion = BCEWithLogitsLoss() if not with_class_weights else BCEWithLogitsLoss(pos_weight=class_weights)
     optimizer = AdamW(model.parameters(), lr=3e-05, weight_decay=1e-02)
 
-    trainer = Trainer(model, (train_dl, dev_dl), optimizer, criterion, target_metric='mean_f1', 
-        early_stopping=early_stopping if early_stopping>0 else None, print_log=print_log)
+    trainer = Trainer(model, (train_dl, dev_dl), optimizer, criterion, target_metric='mean_f1', early_stopping=early_stopping, print_log=print_log)
 
     best = trainer.iterate(num_epochs, with_save=save_path, with_test=test_dl if test_path != '' else None)
     sprint(f'{name}: {best}')
@@ -78,7 +77,7 @@ if __name__ == "__main__":
     parser.add_argument('-tst', '--test_path', help='path to the testing data tsv', type=str, default='')
     parser.add_argument('-d', '--device', help='cpu or cuda', type=str, default='cuda')
     parser.add_argument('-bs', '--batch_size', help='batch size to use for training', type=int, default=16)
-    parser.add_argument('-e', '--num_epochs', help='how many epochs of training', type=int, default=7)
+    parser.add_argument('-e', '--num_epochs', help='how many epochs of training', type=int, default=20)
     parser.add_argument('-early', '--early_stopping', help='early stopping patience (default no)', type=int, default=0)
     parser.add_argument('-s', '--save_path', help='where to save best model', type=str, default=SAVE_PREFIX)
     parser.add_argument('--print_log', action='store_true', help='print training logs', default=False)

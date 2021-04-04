@@ -1,6 +1,6 @@
 from ..types import *
-from ..preprocessing import *
 from ..utils.metrics import preds_to_str
+from ..preprocessing import read_labeled, read_unlabeled
 
 from torch import tensor, stack
 from torch.nn import Module, Linear, Dropout
