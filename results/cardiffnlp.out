@@ -1,0 +1,72 @@
+
+======cardiffnlp-irony=======
+cardiffnlp-irony: {'epoch': 12, 'loss': 0.40445, 'accuracy': 0.377, 'hamming': 0.868, 'mean_f1': 0.78, 'mean_precision': 0.738, 'mean_recall': 0.868, 'column_wise': [{'f1': 0.871, 'precision': 0.868, 'recall': 0.903}, {'f1': 0.807, 'precision': 0.676, 'recall': 1.0}, {'f1': 0.731, 'precision': 0.676, 'recall': 0.818}, {'f1': 0.785, 'precision': 0.706, 'recall': 0.899}, {'f1': 0.752, 'precision': 0.676, 'recall': 0.874}, {'f1': 0.816, 'precision': 0.83, 'recall': 0.809}, {'f1': 0.7, 'precision': 0.736, 'recall': 0.773}]}
+
+======cardiffnlp-irony======= WITH CLASS WEIGHTS
+cardiffnlp-irony: {'epoch': 22, 'loss': 0.77658, 'accuracy': 0.34, 'hamming': 0.849, 'mean_f1': 0.745, 'mean_precision': 0.697, 'mean_recall': 0.865, 'column_wise': [{'f1': 0.819, 'precision': 0.811, 'recall': 0.884}, {'f1': 0.767, 'precision': 0.622, 'recall': 1.0}, {'f1': 0.64, 'precision': 0.595, 'recall': 0.81}, {'f1': 0.719, 'precision': 0.622, 'recall': 0.854}, {'f1': 0.81, 'precision': 0.703, 'recall': 0.96}, {'f1': 0.763, 'precision': 0.792, 'recall': 0.774}, {'f1': 0.7, 'precision': 0.736, 'recall': 0.773}]}
+
+======cardiffnlp-tweet=======
+cardiffnlp-tweet: {'epoch': 7, 'loss': 0.38005, 'accuracy': 0.491, 'hamming': 0.865, 'mean_f1': 0.762, 'mean_precision': 0.719, 'mean_recall': 0.84, 'column_wise': [{'f1': 0.834, 'precision': 0.83, 'recall': 0.866}, {'f1': 0.772, 'precision': 0.647, 'recall': 0.957}, {'f1': 0.742, 'precision': 0.676, 'recall': 0.824}, {'f1': 0.785, 'precision': 0.706, 'recall': 0.899}, {'f1': 0.589, 'precision': 0.529, 'recall': 0.729}, {'f1': 0.84, 'precision': 0.849, 'recall': 0.834}, {'f1': 0.774, 'precision': 0.792, 'recall': 0.774}]}
+
+======cardiffnlp-tweet======= WITH CLASS WEIGHTS
+cardiffnlp-tweet: {'epoch': 26, 'loss': 0.79364, 'accuracy': 0.377, 'hamming': 0.852, 'mean_f1': 0.729, 'mean_precision': 0.691, 'mean_recall': 0.819, 'column_wise': [{'f1': 0.799, 'precision': 0.792, 'recall': 0.851}, {'f1': 0.749, 'precision': 0.639, 'recall': 0.937}, {'f1': 0.61, 'precision': 0.583, 'recall': 0.683}, {'f1': 0.792, 'precision': 0.694, 'recall': 0.927}, {'f1': 0.66, 'precision': 0.583, 'recall': 0.811}, {'f1': 0.792, 'precision': 0.811, 'recall': 0.785}, {'f1': 0.702, 'precision': 0.736, 'recall': 0.739}]}
+
+======cardiffnlp-hate=======
+cardiffnlp-hate: {'epoch': 9, 'loss': 0.43983, 'accuracy': 0.396, 'hamming': 0.846, 'mean_f1': 0.748, 'mean_precision': 0.717, 'mean_recall': 0.81, 'column_wise': [{'f1': 0.832, 'precision': 0.83, 'recall': 0.849}, {'f1': 0.764, 'precision': 0.656, 'recall': 0.913}, {'f1': 0.735, 'precision': 0.688, 'recall': 0.798}, {'f1': 0.78, 'precision': 0.719, 'recall': 0.854}, {'f1': 0.615, 'precision': 0.562, 'recall': 0.683}, {'f1': 0.829, 'precision': 0.849, 'recall': 0.847}, {'f1': 0.679, 'precision': 0.717, 'recall': 0.725}]}
+
+======cardiffnlp-hate======= WITH CLASS WEIGHTS
+cardiffnlp-hate: {'epoch': 18, 'loss': 0.86074, 'accuracy': 0.34, 'hamming': 0.827, 'mean_f1': 0.717, 'mean_precision': 0.677, 'mean_recall': 0.826, 'column_wise': [{'f1': 0.799, 'precision': 0.792, 'recall': 0.851}, {'f1': 0.738, 'precision': 0.611, 'recall': 0.93}, {'f1': 0.655, 'precision': 0.611, 'recall': 0.811}, {'f1': 0.73, 'precision': 0.639, 'recall': 0.853}, {'f1': 0.696, 'precision': 0.611, 'recall': 0.813}, {'f1': 0.792, 'precision': 0.811, 'recall': 0.785}, {'f1': 0.612, 'precision': 0.66, 'recall': 0.737}]}
+
+======cardiffnlp-emotion=======
+cardiffnlp-emotion: {'epoch': 9, 'loss': 0.41046, 'accuracy': 0.396, 'hamming': 0.846, 'mean_f1': 0.742, 'mean_precision': 0.699, 'mean_recall': 0.826, 'column_wise': [{'f1': 0.816, 'precision': 0.811, 'recall': 0.858}, {'f1': 0.759, 'precision': 0.629, 'recall': 0.957}, {'f1': 0.722, 'precision': 0.657, 'recall': 0.821}, {'f1': 0.774, 'precision': 0.686, 'recall': 0.897}, {'f1': 0.548, 'precision': 0.486, 'recall': 0.629}, {'f1': 0.81, 'precision': 0.83, 'recall': 0.813}, {'f1': 0.767, 'precision': 0.792, 'recall': 0.809}]}
+
+======cardiffnlp-emotion======= WITH CLASS WEIGHTS
+cardiffnlp-emotion: {'epoch': 20, 'loss': 0.83058, 'accuracy': 0.302, 'hamming': 0.822, 'mean_f1': 0.708, 'mean_precision': 0.669, 'mean_recall': 0.818, 'column_wise': [{'f1': 0.836, 'precision': 0.83, 'recall': 0.889}, {'f1': 0.78, 'precision': 0.639, 'recall': 1.0}, {'f1': 0.586, 'precision': 0.556, 'recall': 0.701}, {'f1': 0.761, 'precision': 0.667, 'recall': 0.898}, {'f1': 0.576, 'precision': 0.5, 'recall': 0.708}, {'f1': 0.763, 'precision': 0.792, 'recall': 0.774}, {'f1': 0.655, 'precision': 0.698, 'recall': 0.753}]}
+
+======cardiffnlp-offsensive=======
+cardiffnlp-offensive: {'epoch': 13, 'loss': 0.41171, 'accuracy': 0.415, 'hamming': 0.873, 'mean_f1': 0.807, 'mean_precision': 0.778, 'mean_recall': 0.878, 'column_wise': [{'f1': 0.907, 'precision': 0.906, 'recall': 0.924}, {'f1': 0.838, 'precision': 0.75, 'recall': 0.977}, {'f1': 0.727, 'precision': 0.688, 'recall': 0.789}, {'f1': 0.847, 'precision': 0.781, 'recall': 0.943}, {'f1': 0.882, 'precision': 0.812, 'recall': 0.965}, {'f1': 0.88, 'precision': 0.887, 'recall': 0.877}, {'f1': 0.569, 'precision': 0.623, 'recall': 0.668}]}
+
+======cardiffnlp-offsensive======= WITH CLASS WEIGHTS
+cardiffnlp-offensive: {'epoch': 15, 'loss': 0.50769, 'accuracy': 0.396, 'hamming': 0.86, 'mean_f1': 0.768, 'mean_precision': 0.773, 'mean_recall': 0.792, 'column_wise': [{'f1': 0.868, 'precision': 0.868, 'recall': 0.869}, {'f1': 0.837, 'precision': 0.821, 'recall': 0.852}, {'f1': 0.711, 'precision': 0.714, 'recall': 0.714}, {'f1': 0.837, 'precision': 0.821, 'recall': 0.853}, {'f1': 0.726, 'precision': 0.714, 'recall': 0.738}, {'f1': 0.763, 'precision': 0.792, 'recall': 0.774}, {'f1': 0.634, 'precision': 0.679, 'recall': 0.744}]}
+
+
+
+###############################################################################
+Peregrine Cluster
+Job 19065770 for user 's3913171'
+Finished at: Sun Apr  4 07:28:00 CEST 2021
+
+Job details:
+============
+
+Job ID              : 19065770
+Name                : cardiffnlp
+User                : s3913171
+Partition           : gpu
+Nodes               : pg-gpu33
+Number of Nodes     : 1
+Cores               : 12
+State               : COMPLETED
+Submit              : 2021-04-04T07:11:13
+Start               : 2021-04-04T07:11:58
+End                 : 2021-04-04T07:27:59
+Reserved walltime   : 1-00:00:00
+Used walltime       :   00:16:01
+Used CPU time       :   00:14:56 (efficiency:  7.77%)
+% User (Computation): 74.70%
+% System (I/O)      : 25.30%
+Mem reserved        : 2000M/core
+Max Mem used        : 2.60G (pg-gpu33)
+Max Disk Write      : 32.52G (pg-gpu33)
+Max Disk Read       : 17.08G (pg-gpu33)
+Average GPU usage   : 55.6% (pg-gpu33)
+
+
+Acknowledgements:
+=================
+
+Please see this page for information about acknowledging Peregrine in your publications:
+
+https://wiki.hpc.rug.nl/peregrine/introduction/scientific_output
+
+################################################################################
