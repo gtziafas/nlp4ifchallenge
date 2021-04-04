@@ -1,9 +1,9 @@
 from ..types import *
 from ..models.bert import *
 from ..preprocessing import extract_class_weights
-from ..utils.training import train_epoch, eval_epoch
+from ..utils.training import Trainer
 
-from torch import manual_seed, save 
+from torch import manual_seed, save, load
 from torch.nn import Module, BCEWithLogitsLoss
 from torch.optim import AdamW 
 
@@ -12,12 +12,6 @@ import sys
 import os 
 
 SAVE_PREFIX = '/data/s3913171/nlp4ifchallenge/checkpoints'
-
-
-def sprint(s: str) -> None:
-    print(s)
-    sys.stdout.flush()
-
 
 def train_bert(name: str,
                train_path: str,
@@ -43,7 +37,7 @@ def train_bert(name: str,
     dev_dl = DataLoader(model.tensorize_labeled(dev_ds), batch_size=batch_size,
                           collate_fn=lambda b: collate_tuples(b, model.tokenizer.pad_token_id, device), shuffle=False)
 
-    # if provided test path 
+    # if provided test path
     if test_path != '':
         test_ds = read_labeled(test_path)
         test_dl = DataLoader(model.tensorize_labeled(test_ds), batch_size=batch_size,
@@ -53,28 +47,14 @@ def train_bert(name: str,
     criterion = BCEWithLogitsLoss() if not with_class_weights else BCEWithLogitsLoss(pos_weight=class_weights)
     optimizer = AdamW(model.parameters(), lr=3e-05, weight_decay=1e-02)
 
-    train_log, dev_log, test_log = [], [], []
-    best = 0.
-    for epoch in range(num_epochs):
-        train_log.append(train_epoch(model, train_dl, optimizer, criterion))
-        sprint(train_log[-1])
-        dev_log.append(eval_epoch(model, dev_dl, criterion))
-        sprint(dev_log[-1])
-        sprint('=' * 64)
-        mean_f1 = dev_log[-1]['mean_f1']
-        if mean_f1 > best:
-            best = mean_f1
-            faith = array([c['f1'] for c in dev_log[-1]['column_wise']])
-            save(
-                {'faith': faith, 'model_state_dict': model.state_dict()}, f'{save_path}/model.p')
-            # eval on test set for each new best model
-            if test_path != '':
-                test_log.append(eval_epoch(model, test_dl, criterion))
-                sprint('\nTEST\n')
-                sprint(test_log[-1])
-                sprint('=' * 64)
+    trainer = Trainer(model, (train_dl, dev_dl), optimizer, criterion, target_metric='mean_f1', early_stopping=5, print_log=True)
 
-    print(f'\nResults: {best}')
+    best = trainer.iterate(num_epochs, with_save=SAVE_PREFIX, with_test=test_dl)
+    print(f'Results: {best}')
+
+    # load best saved model and re-save with faiths 
+    faiths = array([c['mean_f1'] for c in best['column-wise']])
+    save({'faiths': faiths, 'model_state_dict': load(SAVE_PREFIX)}, SAVE_PREFIX)
 
 
 if __name__ == "__main__":
