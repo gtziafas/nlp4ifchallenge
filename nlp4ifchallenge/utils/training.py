@@ -79,7 +79,7 @@ class Trainer(ABC):
             # update logger for best - save - test - early stopping
             if self.logs['dev'][-1][self.target_metric] > best[self.target_metric]:
                 best = self.logs['dev'][-1]
-                patience = self.early_stop_patience
+                patience = self.early_stop_patience if self.early_stop_patience is not None else num_epochs
 
                 if with_save is not None:
                     torch.save(self.model.state_dict(), with_save)
@@ -111,4 +111,4 @@ class Trainer(ABC):
             print('DEV:')
             for k,v in self.logs['dev'][-1].items():
                 print(f'{k} : {v}')
-            print('==' * 64)
+            print('==' * 72)

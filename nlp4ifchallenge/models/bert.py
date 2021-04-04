@@ -21,10 +21,10 @@ class BERTLike(Module, Model):
         self.classifier = Linear(model_dim, num_classes)
 
     def tensorize_labeled(self, tweets: List[LabeledTweet]) -> List[Tuple[Tensor, Tensor]]:
-        return [tokenize_labeled(tweet, self.tokenizer, self max_length=self.max_length) for tweet in tweets]
+        return [tokenize_labeled(tweet, self.tokenizer, max_length=self.max_length) for tweet in tweets]
 
     def tensorize_unlabeled(self, tweets: List[Tweet]) -> List[Tensor]:
-        return [tokenize_unlabeled(tweet, self.tokenizer, self max_length=self.max_length) for tweet in tweets]
+        return [tokenize_unlabeled(tweet, self.tokenizer, max_length=self.max_length) for tweet in tweets]
 
     def forward(self, x: Tensor):
         attention_mask = x.ne(self.tokenizer.pad_token_id)
