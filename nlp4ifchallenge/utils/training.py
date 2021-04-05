@@ -59,7 +59,7 @@ class Trainer(ABC):
             criterion: Module, 
             target_metric: str,
             print_log: bool = True,
-            early_stopping: Maybe[int] = None):
+            early_stopping: int = 0):
         self.model = model
         self.optimizer = optimizer
         self.criterion = criterion
