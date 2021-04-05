@@ -24,7 +24,7 @@ class PerQMetaClassifier(Module):
         return self.fc2(x) #  7 x 1
 
 
-def MetaClassifier(Module):
+class MetaClassifier(Module):
     def __init__(self, num_models: int, hidden_size: int, num_classes: int = 7):
         super().__init__()
         self.num_classes = num_classes
