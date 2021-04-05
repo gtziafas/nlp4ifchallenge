@@ -58,7 +58,7 @@ def simple_collate(pairs: List[Tuple[Tensor, LongTensor]], device: str) -> Tuple
 
 
 def train(model_names: List[str], train_path: str, dev_path: str, device: str, model_dir: str, batch_size: int,
-          num_epochs: int, print_log: bool, load_stored: bool, hidden_size: int):
+          num_epochs: int, print_log: bool, load_stored: bool, hidden_size: int, dropout: float):
     save_dir = '/'.join([model_dir, 'aggregator'])
     if not os.path.isdir(save_dir):
         os.mkdir(save_dir)
@@ -87,7 +87,7 @@ def train(model_names: List[str], train_path: str, dev_path: str, device: str, m
     dev_dl = DataLoader(list(zip(dev_inputs, dev_labels)), batch_size=batch_size, shuffle=False,
                           collate_fn=lambda b: simple_collate(b, device))
 
-    model = MetaClassifier(num_models=len(model_names), hidden_size=hidden_size).to(device)
+    model = MetaClassifier(num_models=len(model_names), hidden_size=hidden_size, dropout=dropout).to(device)
     optim = SGD(model.parameters(), lr=3e-02, weight_decay=1e-2)
     criterion = BCEWithLogitsIgnore(ignore_index=-1)
     trainer = Trainer(model, (train_dl, dev_dl), optim, criterion, target_metric='mean_f1', print_log=print_log)
@@ -109,7 +109,7 @@ def test(model_names: List[str], test_path: str, hidden_size: int, device: str, 
 
 
 def main(model_names: List[str], train_path: str, dev_path: str, device: str, model_dir: str, batch_size: int,
-          test_path: str, num_epochs: int, print_log: bool, load_stored: bool, hidden_size: int):
+          test_path: str, num_epochs: int, print_log: bool, load_stored: bool, hidden_size: int, dropout: float):
     #model_names = model_names.split(',')
     sprint(model_names)
     
@@ -121,7 +121,7 @@ def main(model_names: List[str], train_path: str, dev_path: str, device: str, mo
 
     # otherwise we train the aggregator
     best = train(model_names, train_path, dev_path, device, model_dir, batch_size, num_epochs, print_log, load_stored,
-                 hidden_size)
+                 hidden_size, dropout)
 
     sprint(f'Results: {best}')
 
@@ -135,6 +135,7 @@ if __name__ == "__main__":
     parser.add_argument('-tst', '--test_path', help='path to the testing data tsv', type=str, default='')
     parser.add_argument('-d', '--device', help='cpu or cuda', type=str, default='cuda')
     parser.add_argument('-bs', '--batch_size', help='batch size to use for training', type=int, default=16)
+    parser.add_argument('-dr', '--dropout', help='dropout to use for training', type=float, default=0.25)
     parser.add_argument('-e', '--num_epochs', help='how many epochs of training', type=int, default=20)
     parser.add_argument('-s', '--model_dir', help='prefix to load model paths', type=str, default=SAVE_PREFIX)
     parser.add_argument('-dh', '--hidden_size', help='size of meta-classifier hidden layer', type=int, default=63)
