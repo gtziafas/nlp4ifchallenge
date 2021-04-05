@@ -31,12 +31,12 @@ class BERTLike(Module, Model):
         _, cls = self.core(x, attention_mask, output_hidden_states=False, return_dict=False)
         return self.classifier(self.dropout(cls))
 
+    @no_grad()
     def predict_scores(self, tweets: List[Tweet]) -> Tensor:
-        with no_grad():
-            self.eval()
-            tensorized = pad_sequence(self.tensorize_unlabeled(tweets),
-                                      padding_value=self.tokenizer.pad_token_id).to(self.core.device)
-            return self.forward(tensorized).sigmoid()
+        self.eval()
+        tensorized = pad_sequence(self.tensorize_unlabeled(tweets),
+                                  padding_value=self.tokenizer.pad_token_id).to(self.core.device)
+        return self.forward(tensorized).sigmoid()
 
     def predict(self, tweets: List[Tweet], threshold: float = 0.5) -> List[str]:
         preds = self.predict_scores(tweets).ge(threshold).long().cpu().tolist()
