@@ -25,7 +25,7 @@ class PerQMetaClassifier(Module):
 
 
 class MetaClassifier(Module):
-    def __init__(self, num_models: int, hidden_size: int, num_classes: int = 7, dropout: float):
+    def __init__(self, num_models: int, hidden_size: int, dropout: float, num_classes: int = 7):
         super().__init__()
         self.num_classes = num_classes
         self.perq_cls = ModuleList([PerQMetaClassifier(num_models, hidden_size, dropout) for _ in range(num_classes)])

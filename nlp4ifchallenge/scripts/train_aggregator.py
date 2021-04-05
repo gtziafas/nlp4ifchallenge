@@ -20,8 +20,8 @@ import sys
 manual_seed(0)
 filterwarnings('ignore')
 
-MODELS_ENSEMBLE = ['vinai-covid', 'vinai-tweet', 'cardiffnlp-tweet', 'cardiffnlp-hate'
-    'dev_covid', 'cardiffnlp-irony', 'cardiffnlp-offensive']
+MODELS_ENSEMBLE = ['vinai-covid', 'vinai-tweet', 'cardiffnlp-tweet', 'cardiffnlp-hate',
+    'del_covid', 'cardiffnlp-irony', 'cardiffnlp-offensive']
 SAVE_PREFIX = '/data/s3913171/nlp4ifchallenge/checkpoints'
 
 
