@@ -2,7 +2,7 @@ from ..types import *
 from ..utils.metrics import preds_to_str
 from ..preprocessing import read_labeled, read_unlabeled
 
-from torch import tensor, stack
+from torch import tensor, stack, no_grad
 from torch.nn import Module, Linear, Dropout
 from torch.nn.utils.rnn import pad_sequence as _pad_sequence
 
@@ -31,13 +31,15 @@ class BERTLike(Module, Model):
         _, cls = self.core(x, attention_mask, output_hidden_states=False, return_dict=False)
         return self.classifier(self.dropout(cls))
 
-    def predict_scores(self, tweets: List[Tweet]) -> List[List[float]]:
-        tensorized = pad_sequence(self.tensorize_unlabeled(tweets), padding_value=self.tokenizer.pad_token_id).to(self.core.device)
-        return self.forward(tensorized).sigmoid().cpu()
+    def predict_scores(self, tweets: List[Tweet]) -> Tensor:
+        with no_grad():
+            self.eval()
+            tensorized = pad_sequence(self.tensorize_unlabeled(tweets),
+                                      padding_value=self.tokenizer.pad_token_id).to(self.core.device)
+            return self.forward(tensorized).sigmoid()
 
     def predict(self, tweets: List[Tweet], threshold: float = 0.5) -> List[str]:
-        tensorized = pad_sequence(self.tensorize_unlabeled(tweets), padding_value=self.tokenizer.pad_token_id).to(self.core.device)
-        preds = self.forward(tensorized).sigmoid().ge(threshold).long().cpu().tolist()
+        preds = self.predict_scores(tweets).ge(threshold).long().cpu().tolist()
         return [preds_to_str(sample) for sample in preds]
 
 
