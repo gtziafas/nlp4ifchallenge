@@ -2,7 +2,7 @@ from ..types import *
 from torch.nn import Module, BCEWithLogitsLoss
 
 
-class BCELogitsIgnore(Module):
+class BCEWithLogitsIgnore(Module):
     def __init__(self, ignore_index: int, **kwargs):
         super(BCELogitsIgnore, self).__init__()
         self.ignore_index = ignore_index

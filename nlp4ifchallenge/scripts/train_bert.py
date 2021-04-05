@@ -1,7 +1,7 @@
 from ..types import *
 from ..models.bert import *
 from ..utils.training import Trainer
-from ..utils.loss import BCELogitsIgnore
+from ..utils.loss import BCEWithLogitsIgnore
 from ..preprocessing import read_labeled, extract_class_weights
 
 from torch import manual_seed, save, load
@@ -54,7 +54,7 @@ def main(name: str,
                           collate_fn=lambda b: collate_tuples(b, model.tokenizer.pad_token_id, device), shuffle=False)
 
     class_weights = tensor(extract_class_weights(train_path), dtype=floatt, device=device) if with_class_weights else None
-    criterion = BCELogitsIgnore(ignore_index=-1, pos_weight=class_weights)
+    criterion = BCEWithLogitsIgnore(ignore_index=-1, pos_weight=class_weights)
     optimizer = AdamW(model.parameters(), lr=3e-05, weight_decay=1e-02)
 
     trainer = Trainer(model, (train_dl, dev_dl), optimizer, criterion, target_metric='mean_f1', early_stopping=early_stopping, print_log=print_log)
