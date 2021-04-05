@@ -1,5 +1,6 @@
 from ..types import *
-from torch import Module, BCEWithLogitsLoss, exp
+from torch import exp
+from torch.nn import BCEWithLogitsLoss, Module
 
 
 class WeightedFocalLoss(Module):
