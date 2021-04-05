@@ -1,7 +1,7 @@
 from ..types import *
 from ..models.bert import *
 from ..utils.training import Trainer
-from ..utils.loss import BCEWithLogitsIgnore
+from ..utils.loss import BCEWithLogitsIgnore, BCEWithLogitsLoss
 from ..preprocessing import read_labeled, extract_class_weights
 
 from torch import manual_seed, save, load
@@ -53,8 +53,8 @@ def main(name: str,
         test_dl = DataLoader(model.tensorize_labeled(test_ds), batch_size=batch_size,
                           collate_fn=lambda b: collate_tuples(b, model.tokenizer.pad_token_id, device), shuffle=False)
 
-    class_weights = tensor(extract_class_weights(train_path), dtype=floatt, device=device) if with_class_weights else None
-    criterion = BCEWithLogitsIgnore(ignore_index=-1, pos_weight=class_weights)
+    class_weights = tensor(extract_class_weights(train_path), dtype=floatt, device=device)
+    criterion = BCEWithLogitsLoss(pos_weight=class_weights) if with_class_weights else BCEWithLogitsIgnore(ignore_index=-1)
     optimizer = AdamW(model.parameters(), lr=3e-05, weight_decay=1e-02)
 
     trainer = Trainer(model, (train_dl, dev_dl), optimizer, criterion, target_metric='mean_f1', early_stopping=early_stopping, print_log=print_log)
@@ -82,7 +82,7 @@ if __name__ == "__main__":
     parser.add_argument('-early', '--early_stopping', help='early stopping patience (default no)', type=int, default=0)
     parser.add_argument('-s', '--save_path', help='where to save best model', type=str, default=SAVE_PREFIX)
     parser.add_argument('--print_log', action='store_true', help='print training logs', default=False)
-    parser.add_argument('--with_class_weights', action='store_true', help='use pre-computed weights for labels', default=False)
+    parser.add_argument('--with_class_weights', action='store_true', help='compute class weights for loss penalization', default=False)
     parser.add_argument('--ignore_nan', action='store_true', help='set True to ignore (not penalize) nan labels', default=False)
 
     kwargs = vars(parser.parse_args())

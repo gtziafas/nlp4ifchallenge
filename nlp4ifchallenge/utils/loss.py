@@ -4,7 +4,7 @@ from torch.nn import Module, BCEWithLogitsLoss
 
 class BCEWithLogitsIgnore(Module):
     def __init__(self, ignore_index: int, **kwargs):
-        super(BCELogitsIgnore, self).__init__()
+        super().__init__()
         self.ignore_index = ignore_index
         self.core = BCEWithLogitsLoss(**kwargs)
 
