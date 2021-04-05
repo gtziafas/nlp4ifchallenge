@@ -1,6 +1,5 @@
 from ..types import *
 from ..models.bert import *
-from ..utils.loss import WeightedFocalLoss
 from ..utils.training import Trainer
 from ..preprocessing import read_labeled, extract_class_weights
 
@@ -54,8 +53,8 @@ def main(name: str,
                           collate_fn=lambda b: collate_tuples(b, model.tokenizer.pad_token_id, device), shuffle=False)
 
     class_weights = tensor(extract_class_weights(train_path), dtype=floatt, device=device)
-    #criterion = BCEWithLogitsLoss() if not with_class_weights else BCEWithLogitsLoss(pos_weight=class_weights)
-    criterion = WeightedFocalLoss(device=device)
+    criterion = BCEWithLogitsLoss() if not with_class_weights else BCEWithLogitsLoss(pos_weight=class_weights)
+    #criterion = WeightedFocalLoss(device=device)
     optimizer = AdamW(model.parameters(), lr=3e-05, weight_decay=1e-02)
 
     trainer = Trainer(model, (train_dl, dev_dl), optimizer, criterion, target_metric='mean_f1', early_stopping=early_stopping, print_log=print_log)
