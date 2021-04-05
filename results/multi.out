@@ -1,0 +1,45 @@
+======bert-base======
+{'epoch': 7, 'loss': 0.43125, 'accuracy': 0.52, 'hamming': 0.874, 'mean_f1': 0.88, 'mean_precision': 0.843, 'mean_recall': 0.929, 'column_wise': [{'f1': 0.903, 'precision': 0.898, 'recall': 0.91}, {'f1': 0.927, 'precision': 0.902, 'recall': 0.955}, {'f1': 0.893, 'precision': 0.87, 'recall': 0.918}, {'f1': 0.875, 'precision': 0.832, 'recall': 0.934}, {'f1': 0.797, 'precision': 0.759, 'recall': 0.862}, {'f1': 0.896, 'precision': 0.832, 'recall': 0.981}, {'f1': 0.866, 'precision': 0.806, 'recall': 0.947}]}
+
+best test -- {'epoch': 7, 'loss': 0.47977, 'accuracy': 0.472, 'hamming': 0.833, 'mean_f1': 0.729, 'mean_precision': 0.653, 'mean_recall': 0.877, 'column_wise': [{'f1': 0.751, 'precision': 0.736, 'recall': 0.841}, {'f1': 0.71, 'precision': 0.564, 'recall': 0.957}, {'f1': 0.674, 'precision': 0.564, 'recall': 0.838}, {'f1': 0.566, 'precision': 0.462, 'recall': 0.886}, {'f1': 0.661, 'precision': 0.564, 'recall': 0.812}, {'f1': 0.94, 'precision': 0.887, 'recall': 1.0}, {'f1': 0.798, 'precision': 0.792, 'recall': 0.805}]}
+
+
+======bert-base====== WITH CLASS WEIGHTS
+{'epoch': 10, 'loss': 1.4277, 'accuracy': 0.203, 'hamming': 0.763, 'mean_f1': 0.698, 'mean_precision': 0.737, 'mean_recall': 0.742, 'column_wise': [{'f1': 0.852, 'precision': 0.861, 'recall': 0.853}, {'f1': 0.845, 'precision': 0.891, 'recall': 0.806}, {'f1': 0.242, 'precision': 0.371, 'recall': 0.664}, {'f1': 0.778, 'precision': 0.815, 'recall': 0.745}, {'f1': 0.747, 'precision': 0.781, 'recall': 0.716}, {'f1': 0.726, 'precision': 0.735, 'recall': 0.719}, {'f1': 0.699, 'precision': 0.709, 'recall': 0.691}]}
+
+best test -- {'epoch': 10, 'loss': 0.79293, 'accuracy': 0.264, 'hamming': 0.741, 'mean_f1': 0.599, 'mean_precision': 0.612, 'mean_recall': 0.693, 'column_wise': [{'f1': 0.849, 'precision': 0.849, 'recall': 0.852}, {'f1': 0.627, 'precision': 0.621, 'recall': 0.648}, {'f1': 0.222, 'precision': 0.241, 'recall': 0.528}, {'f1': 0.744, 'precision': 0.724, 'recall': 0.785}, {'f1': 0.643, 'precision': 0.621, 'recall': 0.73}, {'f1': 0.621, 'precision': 0.679, 'recall': 0.728}, {'f1': 0.484, 'precision': 0.547, 'recall': 0.578}]}
+
+
+======multi-xlm========
+{'epoch': 2, 'loss': 0.34845, 'accuracy': 0.532, 'hamming': 0.872, 'mean_f1': 0.885, 'mean_precision': 0.85, 'mean_recall': 0.931, 'column_wise': [{'f1': 0.913, 'precision': 0.91, 'recall': 0.918}, {'f1': 0.938, 'precision': 0.913, 'recall': 0.965}, {'f1': 0.911, 'precision': 0.88, 'recall': 0.945}, {'f1': 0.89, 'precision': 0.858, 'recall': 0.936}, {'f1': 0.798, 'precision': 0.762, 'recall': 0.855}, {'f1': 0.896, 'precision': 0.83, 'recall': 0.983}, {'f1': 0.847, 'precision': 0.797, 'recall': 0.914}]}
+
+best test -- {'epoch': 2, 'loss': 0.47867, 'accuracy': 0.415, 'hamming': 0.803, 'mean_f1': 0.725, 'mean_precision': 0.665, 'mean_recall': 0.848, 'column_wise': [{'f1': 0.783, 'precision': 0.774, 'recall': 0.846}, {'f1': 0.733, 'precision': 0.595, 'recall': 0.957}, {'f1': 0.697, 'precision': 0.568, 'recall': 0.903}, {'f1': 0.687, 'precision': 0.595, 'recall': 0.827}, {'f1': 0.626, 'precision': 0.541, 'recall': 0.797}, {'f1': 0.873, 'precision': 0.868, 'recall': 0.879}, {'f1': 0.679, 'precision': 0.717, 'recall': 0.725}]}
+
+======multi-xlm======== WITH CLASS WEIGHTS 
+{'epoch': 3, 'loss': 0.88111, 'accuracy': 0.033, 'hamming': 0.765, 'mean_f1': 0.762, 'mean_precision': 0.676, 'mean_recall': 1.0, 'column_wise': [{'f1': 0.914, 'precision': 0.842, 'recall': 1.0}, {'f1': 0.9, 'precision': 0.818, 'recall': 1.0}, {'f1': 0.082, 'precision': 0.043, 'recall': 1.0}, {'f1': 0.854, 'precision': 0.745, 'recall': 1.0}, {'f1': 0.784, 'precision': 0.645, 'recall': 1.0}, {'f1': 0.906, 'precision': 0.827, 'recall': 1.0}, {'f1': 0.896, 'precision': 0.811, 'recall': 1.0}]}
+
+best test -- {'epoch': 3, 'loss': 1.21643, 'accuracy': 0.038, 'hamming': 0.76, 'mean_f1': 0.602, 'mean_precision': 0.48, 'mean_recall': 1.0, 'column_wise': [{'f1': 0.675, 'precision': 0.509, 'recall': 1.0}, {'f1': 0.605, 'precision': 0.434, 'recall': 1.0}, {'f1': 0.172, 'precision': 0.094, 'recall': 1.0}, {'f1': 0.464, 'precision': 0.302, 'recall': 1.0}, {'f1': 0.441, 'precision': 0.283, 'recall': 1.0}, {'f1': 0.94, 'precision': 0.887, 'recall': 1.0}, {'f1': 0.918, 'precision': 0.849, 'recall': 1.0}]}
+
+======multi-xnli=======
+{'epoch': 1, 'loss': 0.44079, 'accuracy': 0.461, 'hamming': 0.853, 'mean_f1': 0.877, 'mean_precision': 0.784, 'mean_recall': 1.0, 'column_wise': [{'f1': 0.914, 'precision': 0.842, 'recall': 1.0}, {'f1': 0.9, 'precision': 0.818, 'recall': 1.0}, {'f1': 0.888, 'precision': 0.799, 'recall': 1.0}, {'f1': 0.854, 'precision': 0.745, 'recall': 1.0}, {'f1': 0.784, 'precision': 0.645, 'recall': 1.0}, {'f1': 0.906, 'precision': 0.827, 'recall': 1.0}, {'f1': 0.896, 'precision': 0.811, 'recall': 1.0}]}
+
+best test -- {'epoch': 1, 'loss': 0.54537, 'accuracy': 0.208, 'hamming': 0.736, 'mean_f1': 0.661, 'mean_precision': 0.526, 'mean_recall': 1.0, 'column_wise': [{'f1': 0.675, 'precision': 0.509, 'recall': 1.0}, {'f1': 0.605, 'precision': 0.434, 'recall': 1.0}, {'f1': 0.587, 'precision': 0.415, 'recall': 1.0}, {'f1': 0.464, 'precision': 0.302, 'recall': 1.0}, {'f1': 0.441, 'precision': 0.283, 'recall': 1.0}, {'f1': 0.94, 'precision': 0.887, 'recall': 1.0}, {'f1': 0.918, 'precision': 0.849, 'recall': 1.0}]}
+
+
+=======multi-xnli====== WITH CLASS WEIGHTS
+{'epoch': 3, 'loss': 0.8803, 'accuracy': 0.033, 'hamming': 0.765, 'mean_f1': 0.762, 'mean_precision': 0.676, 'mean_recall': 1.0, 'column_wise': [{'f1': 0.914, 'precision': 0.842, 'recall': 1.0}, {'f1': 0.9, 'precision': 0.818, 'recall': 1.0}, {'f1': 0.082, 'precision': 0.043, 'recall': 1.0}, {'f1': 0.854, 'precision': 0.745, 'recall': 1.0}, {'f1': 0.784, 'precision': 0.645, 'recall': 1.0}, {'f1': 0.906, 'precision': 0.827, 'recall': 1.0}, {'f1': 0.896, 'precision': 0.811, 'recall': 1.0}]}
+
+best test -- {'epoch': 3, 'loss': 1.04279, 'accuracy': 0.038, 'hamming': 0.76, 'mean_f1': 0.602, 'mean_precision': 0.48, 'mean_recall': 1.0, 'column_wise': [{'f1': 0.675, 'precision': 0.509, 'recall': 1.0}, {'f1': 0.605, 'precision': 0.434, 'recall': 1.0}, {'f1': 0.172, 'precision': 0.094, 'recall': 1.0}, {'f1': 0.464, 'precision': 0.302, 'recall': 1.0}, {'f1': 0.441, 'precision': 0.283, 'recall': 1.0}, {'f1': 0.
+
+========multi-microsoft==========
+{'loss': 0.4251, 'accuracy': 0.489, 'hamming': 0.864, 'mean_f1': 0.882, 'mean_p': 0.829, 'mean_r': 0.948, 'column_wise': [{'f1': 0.917, 'p': 0.913, 'r': 0.925}, {'f1': 0.937, 'p': 0.906, 'r': 0.971}, {'f
+1': 0.809, 'p': 0.809, 'r': 0.811}, {'f1': 0.892, 'p': 0.825, 'r': 0.971}, {'f1': 0.816, 'p': 0.712, 'r': 0.961}, {'f1': 0.906, 'p': 0.827, 'r': 1.0}, {'f1': 0.896, 'p': 0.811, 'r': 1.0}]}
+
+best test -- {'loss': 0.49076, 'accuracy': 0.491, 'hamming': 0.83, 'mean_f1': 0.765, 'mean_p': 0.672, 'mean_r': 0.927, 'column_wise': [{'f1': 0.851, 'p': 0.849, 'r': 0.875}, {'f1': 0.786, 'p': 0.667, 'r': 0.957}, {'f1': 0.664, 'p': 0.576, 'r': 0.785}, {'f1': 0.612, 'p': 0.455, 'r': 0.938}, {'f1': 0.583, 'p': 0.424, 'r': 0.933}, {'f1': 0.94, 'p': 0.887, 'r': 1.0}, {'f1': 0.918, 'p': 0.849, 'r': 1.0}]}
+
+
+========multi-sentiment==========
+{'loss': 0.3936, 'accuracy': 0.501, 'hamming': 0.867, 'mean_f1': 0.882, 'mean_p': 0.828, 'mean_r': 0.95, 'column_wise': [{'f1': 0.888, 'p': 0.882, 'r': 0.896}, {'f1': 0.922, 'p': 0.892, 'r': 0.954}, {'f1': 0.888, 'p': 0.859, 'r': 0.918}, {'f1': 0.873, 'p': 0.808, 'r': 0.949}, {'f1': 0.805, 'p': 0.714, 'r': 0.94}, {'f1': 0.906, 'p': 0.827, 'r': 1.0}, {'f1': 0.894, 'p': 0.816, 'r': 0.995}]}
+
+best test -- {'loss': 0.46626, 'accuracy': 0.415, 'hamming': 0.825, 'mean_f1': 0.725, 'mean_p': 0.63, 'mean_r': 0.938, 'column_wise': [{'f1': 0.757, 'p': 0.736, 'r': 0.878}, {'f1': 0.719, 'p': 0.561, 'r': 1.0}, {'f1': 0.622, 'p': 0.512, 'r': 0.792}, {'f1': 0.561, 'p': 0.39, 'r': 1.0}, {'f1': 0.557, 'p': 0.439, 'r': 0.927}, {'f1': 0.94, 'p': 0.887, 'r': 1.0}, {'f1': 0.917, 'p': 0.887, 'r': 0.972}]}
+
