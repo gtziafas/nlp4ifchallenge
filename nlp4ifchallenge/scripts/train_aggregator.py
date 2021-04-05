@@ -13,6 +13,8 @@ from torch import load, cat, stack, save, no_grad
 import os
 import sys
 
+SAVE_PREFIX = '/data/s3913171/nlp4ifchallenge/checkpoints'
+
 
 def sprint(s: Any):
     print(s)
@@ -35,22 +37,9 @@ def get_scores(model_names: List[str], datasets: List[List[Tweet]], batch_size: 
             for batch_idx in range(nbatches):
                 start, end = batch_idx * batch_size, min(len(dataset), (batch_idx + 1) * batch_size)
                 this_dataset_outs.append(model.predict_scores(dataset[start:end]))
-            this_model_outs.append(cat(this_dataset_outs, dim=0))
+            this_model_outs.append(stack(this_dataset_outs, dim=0))
         outs.append(this_model_outs)
     return [stack(x, dim=1) for x in zip(*outs)]
-
-
-def _train_aggregator(dls: Tuple[DataLoader, DataLoader], aggregator: MetaClassifier, num_epochs: int,
-                      save_dir: str, print_log: bool) -> Dict[str, Any]:
-    save_dir = '/'.join([save_dir, 'aggregator'])
-    if not os.path.isdir(save_dir):
-        os.mkdir(save_dir)
-    save_dir = '/'.join([save_dir, 'model.p'])
-
-    optim = AdamW(aggregator.parameters(), lr=1e-3, weight_decay=1e-2)
-    criterion = BCEWithLogitsLoss()
-    trainer = Trainer(aggregator, dls, optim, criterion, target_metric='mean_f1', print_log=print_log)
-    return trainer.iterate(num_epochs, with_save=save_dir)
 
 
 def simple_collate(pairs: List[Tuple[Tensor, LongTensor]], device: str) -> Tuple[Tensor, LongTensor]:
@@ -60,15 +49,19 @@ def simple_collate(pairs: List[Tuple[Tensor, LongTensor]], device: str) -> Tuple
 
 def train(model_names: List[str], train_path: str, dev_path: str, device: str, model_dir: str, batch_size: int,
           num_epochs: int, print_log: bool, load_stored: bool, hidden_size: int, ignore_nan: bool):
+    save_dir = '/'.join([model_dir, 'aggregator'])
+    if not os.path.isdir(save_dir):
+        os.mkdir(save_dir)
+    save_dir = '/'.join([save_dir, 'model.p'])
+
     def load_scores():
         tmp = load(model_dir + '/scores.p')
         assert tmp['model_names'] == model_names
         return tmp['train_inputs'], tmp['dev_inputs']
 
-    # filter paths
-    train_ds = read_labeled(train_path)
-    dev_ds = read_labeled(dev_path)
 
+    # load data from checkpoint if extracted scores once
+    train_ds, dev_ds = read_labeled(train_path), read_labeled(dev_path)
     if not load_stored:
         train_inputs, dev_inputs = get_scores(model_names=model_names, datasets=[train_ds, dev_ds], batch_size=16,
                                                device=device, model_dir=model_dir, ignore_nan=ignore_nan)
@@ -82,20 +75,20 @@ def train(model_names: List[str], train_path: str, dev_path: str, device: str, m
     train_dl = DataLoader(list(zip(train_inputs, train_labels)), batch_size=batch_size, shuffle=True,
                           collate_fn=lambda b: simple_collate(b, device))
     dev_dl = DataLoader(list(zip(dev_inputs, dev_labels)), batch_size=batch_size, shuffle=False,
-                        collate_fn=lambda b: simple_collate(b, device))
-    aggregator = MetaClassifier(num_models=len(model_names), hidden_size=hidden_size).to(device)
-    best_metric = _train_aggregator((train_dl, dev_dl), aggregator, num_epochs=num_epochs,
-                                    save_dir=model_dir, print_log=print_log)
-    sprint(best_metric)
+                          collate_fn=lambda b: simple_collate(b, device))
+
+    model = MetaClassifier(num_models=len(model_names), hidden_size=hidden_size).to(device)
+    optim = AdamW(model.parameters(), lr=1e-3, weight_decay=1e-2)
+    criterion = BCEWithLogitsLoss()
+    trainer = Trainer(model, (train_dl, dev_dl), optim, criterion, target_metric='mean_f1', print_log=print_log)
+    best = trainer.iterate(num_epochs, with_save=save_dir)
 
 
 def find_thresholds():
     ...
 
 
-@no_grad()
-def test(model_names: List[str], test_path: str, hidden_size: int, device: str,
-         model_dir: str, save_to: str) -> List[str]:
+def test(model_names: List[str], test_path: str, hidden_size: int, device: str, model_dir: str, save_to: str) -> List[str]:
     test_ds = read_unlabeled(test_path)
     [test_inputs] = get_scores(model_names, datasets=[test_ds], batch_size=16, device=device, model_dir=model_dir)
     aggregator = MetaClassifier(num_models=len(model_names), hidden_size=hidden_size).to(device)
@@ -103,6 +96,40 @@ def test(model_names: List[str], test_path: str, hidden_size: int, device: str,
     outs = aggregator.threshold(test_inputs.to(device))
     with open(save_to, 'w') as f:
         f.write('\n'.join(outs))
-    return outs
 
 
+def main(model_names: List[str], train_path: str, dev_path: str, device: str, model_dir: str, batch_size: int,
+          test_path: str, num_epochs: int, print_log: bool, load_stored: bool, hidden_size: int, ignore_nan: bool):
+    model_names = ','.split(model_names)
+    
+    # if test path is given do only testing
+    if test_path != '':
+        out_file = model_dir + '/test.out'
+        test(model_names, test_path, hidden_size, device, model_dir, save_to=out_file)
+        return
+
+    # otherwise we train the aggregator
+    best = train(model_names, train_path, dev_path, device, model_dir, batch_size, num_epochs, print_log, load_stored,
+                 hidden_size, ignore_nan)
+
+    sprint(f'Results: {best}')
+
+
+if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-n', '--model_names', help='names of BERT models for ensemble (given as ,-seperated str)', type=str)
+    parser.add_argument('-tr', '--train_path', help='path to the training data tsv', type=str, default='./data/english/covid19_disinfo_binary_english_train.tsv')
+    parser.add_argument('-dev', '--dev_path', help='path to the development data tsv', type=str, default='./data/english/covid19_disinfo_binary_english_dev_input.tsv')
+    parser.add_argument('-tst', '--test_path', help='path to the testing data tsv', type=str, default='')
+    parser.add_argument('-d', '--device', help='cpu or cuda', type=str, default='cuda')
+    parser.add_argument('-bs', '--batch_size', help='batch size to use for training', type=int, default=16)
+    parser.add_argument('-e', '--num_epochs', help='how many epochs of training', type=int, default=20)
+    parser.add_argument('-d', '--model_dir', help='prefix to load model paths', type=str, default=SAVE_PREFIX)
+    parser.add_argument('-h', '--hidden_size', help='size of meta-classifier hidden layer', type=int, default=14)
+    parser.add_argument('--load_stored', action='store_true', help='whether to load scores from checkpoint', default=False)
+    parser.add_argument('--print_log', action='store_true', help='print training logs', default=False)
+    parser.add_argument('--ignore_nan', action='store_true', help='set True to ignore (not penalize) nan labels', default=False)
+
+    kwargs = vars(parser.parse_args())
+    main(**kwargs)
