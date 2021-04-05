@@ -14,8 +14,12 @@ def preds_to_str(preds: List[int]) -> str:
 def get_metrics(preds: List[List[int]], labels: List[List[int]], ignore_index: int = -1) -> Dict[str, Any]:
     preds_ = [preds_to_str(p).split('\t') for p in preds]
     labels_ = [preds_to_str(l).split('\t') for l in labels]
-    per_column_preds = list(zip(*preds_))
-    per_column_labels = list(zip(*labels_))
+    per_column_preds = list(zip(*preds_))     # 7 columns x num_elements
+    per_column_labels = list(zip(*labels_))   # 7 columns x num_elements
+    for column in range(1, 5):
+        per_column_preds[column] = [p for i, p in enumerate(per_column_preds[column])
+                                    if per_column_labels[column][i] != 'nan']
+        per_column_labels[column] = [p for p in per_column_labels[column] if p != 'nan']
     per_column_metrics = [(f1_score(pcp, pcl, labels=['yes', 'no'], average='weighted'),
                            recall_score(pcp, pcl, labels=['yes', 'no'], average='weighted'),
                            precision_score(pcp, pcl, labels=['yes', 'no'], average='weighted'))
