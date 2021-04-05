@@ -1,10 +1,10 @@
 from ..types import *
 from ..models.bert import *
 from ..utils.training import Trainer
+from ..utils.loss import BCELogitsIgnore
 from ..preprocessing import read_labeled, extract_class_weights
 
 from torch import manual_seed, save, load
-from torch.nn import Module, BCEWithLogitsLoss
 from torch.optim import AdamW 
 
 from warnings import filterwarnings
@@ -20,16 +20,17 @@ def sprint(s: str):
 
 
 def main(name: str,
-       train_path: str,
-       dev_path: str,
-       test_path: str,
-       device: str,
-       batch_size: int,
-       early_stopping: Maybe[int],
-       num_epochs: int,
-       save_path: str,
-       print_log: bool,
-       with_class_weights: bool):
+        train_path: str,
+        dev_path: str,
+        test_path: str,
+        device: str,
+        batch_size: int,
+        early_stopping: Maybe[int],
+        num_epochs: int,
+        save_path: str,
+        print_log: bool,
+        with_class_weights: bool,
+        ignore_nan: bool):
     save_path = '/'.join([save_path, name])
     if not os.path.isdir(save_path):
         os.mkdir(save_path)
@@ -38,7 +39,7 @@ def main(name: str,
     manual_seed(0)
     filterwarnings('ignore')
 
-    model = make_model(name).to(device)
+    model = make_model(name, ignore_nan).to(device)
 
     train_ds, dev_ds = read_labeled(train_path), read_labeled(dev_path)
     train_dl = DataLoader(model.tensorize_labeled(train_ds), batch_size=batch_size,
@@ -52,9 +53,8 @@ def main(name: str,
         test_dl = DataLoader(model.tensorize_labeled(test_ds), batch_size=batch_size,
                           collate_fn=lambda b: collate_tuples(b, model.tokenizer.pad_token_id, device), shuffle=False)
 
-    class_weights = tensor(extract_class_weights(train_path), dtype=floatt, device=device)
-    criterion = BCEWithLogitsLoss() if not with_class_weights else BCEWithLogitsLoss(pos_weight=class_weights)
-    #criterion = WeightedFocalLoss(device=device)
+    class_weights = tensor(extract_class_weights(train_path), dtype=floatt, device=device) if with_class_weights else None
+    criterion = BCELogitsIgnore(ignore_index=-1, pos_weight=class_weights)
     optimizer = AdamW(model.parameters(), lr=3e-05, weight_decay=1e-02)
 
     trainer = Trainer(model, (train_dl, dev_dl), optimizer, criterion, target_metric='mean_f1', early_stopping=early_stopping, print_log=print_log)
@@ -83,6 +83,7 @@ if __name__ == "__main__":
     parser.add_argument('-s', '--save_path', help='where to save best model', type=str, default=SAVE_PREFIX)
     parser.add_argument('--print_log', action='store_true', help='print training logs', default=False)
     parser.add_argument('--with_class_weights', action='store_true', help='use pre-computed weights for labels', default=False)
+    parser.add_argument('--ignore_nan', action='store_true', help='set True to ignore (not penalize) nan labels', default=False)
 
     kwargs = vars(parser.parse_args())
     main(**kwargs)
