@@ -1,20 +1,27 @@
 from ..types import *
 from ..models.bert import make_model, tokenize_labels
 from ..models.aggregation import MetaClassifier
+from ..utils.loss import BCEWithLogitsIgnore
 from ..preprocessing import read_unlabeled, read_labeled
 from ..utils.training import Trainer
 
 from math import ceil
 
-from torch.optim.adamw import AdamW
+from torch.optim import SGD
 from torch.cuda import empty_cache
 from torch.nn import BCEWithLogitsLoss
-from torch import load, cat, stack, save, no_grad
+from torch import load, cat, stack, save, no_grad, manual_seed
 
+from warnings import filterwarnings
 import os
 import sys
 
-MODELS_ENSEMBLE = ['vinai-covid', 'vinai-tweet', 'cardiffnlp-offensive']
+
+manual_seed(0)
+filterwarnings('ignore')
+
+MODELS_ENSEMBLE = ['vinai-covid', 'vinai-tweet', 'cardiffnlp-tweet', 'cardiffnlp-hate'
+    'dev_covid', 'cardiffnlp-irony', 'cardiffnlp-offensive']
 SAVE_PREFIX = '/data/s3913171/nlp4ifchallenge/checkpoints'
 
 
@@ -81,8 +88,8 @@ def train(model_names: List[str], train_path: str, dev_path: str, device: str, m
                           collate_fn=lambda b: simple_collate(b, device))
 
     model = MetaClassifier(num_models=len(model_names), hidden_size=hidden_size).to(device)
-    optim = AdamW(model.parameters(), lr=1e-3, weight_decay=1e-2)
-    criterion = BCEWithLogitsLoss()
+    optim = SGD(model.parameters(), lr=3e-02, weight_decay=1e-2)
+    criterion = BCEWithLogitsIgnore(ignore_index=-1)
     trainer = Trainer(model, (train_dl, dev_dl), optim, criterion, target_metric='mean_f1', print_log=print_log)
     return trainer.iterate(num_epochs, with_save=save_dir)
 
@@ -130,7 +137,7 @@ if __name__ == "__main__":
     parser.add_argument('-bs', '--batch_size', help='batch size to use for training', type=int, default=16)
     parser.add_argument('-e', '--num_epochs', help='how many epochs of training', type=int, default=20)
     parser.add_argument('-s', '--model_dir', help='prefix to load model paths', type=str, default=SAVE_PREFIX)
-    parser.add_argument('-dh', '--hidden_size', help='size of meta-classifier hidden layer', type=int, default=14)
+    parser.add_argument('-dh', '--hidden_size', help='size of meta-classifier hidden layer', type=int, default=63)
     parser.add_argument('--load_stored', action='store_true', help='whether to load scores from checkpoint', default=False)
     parser.add_argument('--print_log', action='store_true', help='print training logs', default=False)
     

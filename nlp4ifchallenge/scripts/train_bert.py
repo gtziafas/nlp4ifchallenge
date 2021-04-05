@@ -12,6 +12,8 @@ import sys
 import os 
 
 SAVE_PREFIX = '/data/s3913171/nlp4ifchallenge/checkpoints'
+manual_seed(0)
+filterwarnings('ignore')
 
 
 def sprint(s: str):
@@ -35,9 +37,6 @@ def main(name: str,
     if not os.path.isdir(save_path):
         os.mkdir(save_path)
     save_path = '/'.join([save_path, 'model.p'])
-
-    manual_seed(0)
-    filterwarnings('ignore')
 
     model = make_model(name, ignore_nan).to(device)
 
