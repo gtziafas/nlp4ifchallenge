@@ -28,7 +28,7 @@ class LabeledTweet(Tweet):
 
 class Model(ABC):
 
-    def predict(self, tweets: List[Tweet]) -> List[str]:
+    def predict(self, tweets: List[Tweet], threshold: float) -> List[str]:
         ...
 
     def predict_scores(self, tweets: List[Tweet]) -> array:

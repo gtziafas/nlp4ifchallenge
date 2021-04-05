@@ -35,9 +35,9 @@ class BERTLike(Module, Model):
         tensorized = pad_sequence(self.tensorize_unlabeled(tweets), padding_value=self.tokenizer.pad_token_id).to(self.core.device)
         return self.forward(tensorized).sigmoid().cpu()
 
-    def predict(self, tweets: List[Tweet]) -> List[str]:
+    def predict(self, tweets: List[Tweet], threshold: float = 0.5) -> List[str]:
         tensorized = pad_sequence(self.tensorize_unlabeled(tweets), padding_value=self.tokenizer.pad_token_id).to(self.core.device)
-        preds = self.forward(tensorized).sigmoid().round().long().cpu().tolist()
+        preds = self.forward(tensorized).sigmoid().ge(threshold).long().cpu().tolist()
         return [preds_to_str(sample) for sample in preds]
 
 
