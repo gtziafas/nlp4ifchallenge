@@ -59,7 +59,8 @@ def tokenize_text(text: str, tokenizer: AutoTokenizer, **kwargs) -> Tensor:
     return tensor(tokenizer.encode(text, truncation=True, **kwargs), dtype=longt)
 
 
-def tokenize_labels(labels: List[Label], none_label: int) -> LongTensor:
+def tokenize_labels(labels: List[Label], ignore_nan: bool) -> LongTensor:
+    none_label = 0 if not ignore_nan else -1
     return tensor([none_label if label is None else 0 if label is False else 1 for label in labels], dtype=longt)
 
 
@@ -69,7 +70,7 @@ def tokenize_unlabeled(tweet: Tweet, tokenizer: AutoTokenizer, **kwargs) -> Tens
 
 def tokenize_labeled(tweet: LabeledTweet, tokenizer: AutoTokenizer,
                      ignore_nan: bool = False, **kwargs) -> Tuple[Tensor, Tensor]:
-    return tokenize_unlabeled(tweet, tokenizer, **kwargs), tokenize_labels(tweet.labels, 0 if not ignore_nan else -1)
+    return tokenize_unlabeled(tweet, tokenizer, **kwargs), tokenize_labels(tweet.labels, ignore_nan)
 
 
 def make_labeled_dataset(path: str, tokenizer: AutoTokenizer, **kwargs) -> List[Tuple[Tensor, Tensor]]:

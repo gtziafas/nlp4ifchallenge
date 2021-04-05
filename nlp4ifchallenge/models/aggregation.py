@@ -19,9 +19,8 @@ class PerQMetaClassifier(Module):
         self.fc2 = Linear(in_features=hidden_size, out_features=1)
 
     def forward(self, x: Tensor) -> Tensor:
-        # B x M
-        x = self.fc1(x).tanh() # B x H
-        return self.fc2(x) #  7 x 1
+        x = self.fc1(x).tanh() # B x M -> B x H
+        return self.fc2(x) #  B x 1
 
 
 class MetaClassifier(Module):

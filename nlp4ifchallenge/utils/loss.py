@@ -8,7 +8,7 @@ class BCELogitsIgnore(Module):
         self.ignore_index = ignore_index
         self.core = BCEWithLogitsLoss(**kwargs)
 
-    def forward(self, inputs: Tensor, target: Tensor):
-        inputs = inputs[target.ne(self.ignore_index)]
-        target = target[target.ne(self.ignore_index)]
-        return self.core(inputs, target)
+    def forward(self, predictions: Tensor, targets: Tensor) -> Tensor:
+        predictions = predictions[targets.ne(self.ignore_index)]
+        targets = targets[targets.ne(self.ignore_index)]
+        return self.core(predictions, targets)

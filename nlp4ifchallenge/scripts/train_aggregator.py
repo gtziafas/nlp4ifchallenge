@@ -3,12 +3,12 @@ from ..models.bert import make_model, tokenize_labels
 from ..models.aggregation import MetaClassifier
 from ..preprocessing import read_unlabeled, read_labeled
 from ..utils.training import Trainer
-from torch import load, cat, stack, save
 
 from math import ceil
 
 from torch.optim.adamw import AdamW
 from torch.nn import BCEWithLogitsLoss
+from torch import load, cat, stack, save, no_grad
 
 import os
 import sys
@@ -20,14 +20,14 @@ def sprint(s: Any):
 
 
 def get_scores(model_names: List[str], datasets: List[List[Tweet]], batch_size: int, device: str,
-               model_dir: str) -> List[Tensor]:
+               model_dir: str, ignore_nan: bool) -> List[Tensor]:
     """
        :returns num_dataset tensors of shape B x M x Q
     """
     outs = []
     for name in model_names:
         this_model_outs = []
-        model = make_model(name).to(device)
+        model = make_model(name, ignore_nan).to(device)
         model.load_state_dict(load(model_dir + name + '/model.p')['model_state_dict'])
         for dataset in datasets:
             this_dataset_outs = []
@@ -59,7 +59,7 @@ def simple_collate(pairs: List[Tuple[Tensor, LongTensor]], device: str) -> Tuple
 
 
 def train(model_names: List[str], train_path: str, dev_path: str, device: str, model_dir: str, batch_size: int,
-          num_epochs: int, print_log: bool, load_stored: bool, hidden_size: int):
+          num_epochs: int, print_log: bool, load_stored: bool, hidden_size: int, ignore_nan: bool):
     def load_scores():
         tmp = load(model_dir + '/scores.p')
         assert tmp['model_names'] == model_names
@@ -71,14 +71,14 @@ def train(model_names: List[str], train_path: str, dev_path: str, device: str, m
 
     if not load_stored:
         train_inputs, dev_inputs = get_scores(model_names=model_names, datasets=[train_ds, dev_ds], batch_size=16,
-                                               device=device, model_dir=model_dir)
+                                               device=device, model_dir=model_dir, ignore_nan=ignore_nan)
         save({'train_inputs': train_inputs, 'dev_inputs': dev_inputs, 'model_names': model_names},
              model_dir + '/scores.p')
     else:
         train_inputs, dev_inputs = load_scores()
 
-    train_labels = stack([tokenize_labels(s.labels) for s in train_ds], dim=0)
-    dev_labels = stack([tokenize_labels(s.labels) for s in dev_ds], dim=0)
+    train_labels = stack([tokenize_labels(s.labels, ignore_nan) for s in train_ds], dim=0)
+    dev_labels = stack([tokenize_labels(s.labels, ignore_nan) for s in dev_ds], dim=0)
     train_dl = DataLoader(list(zip(train_inputs, train_labels)), batch_size=batch_size, shuffle=True,
                           collate_fn=lambda b: simple_collate(b, device))
     dev_dl = DataLoader(list(zip(dev_inputs, dev_labels)), batch_size=batch_size, shuffle=False,
@@ -93,6 +93,7 @@ def find_thresholds():
     ...
 
 
+@no_grad()
 def test(model_names: List[str], test_path: str, hidden_size: int, device: str,
          model_dir: str, save_to: str) -> List[str]:
     test_ds = read_unlabeled(test_path)
