@@ -33,7 +33,8 @@ def main(name: str,
         print_log: bool,
         with_class_weights: bool,
         ignore_nan: bool):
-    save_path = '/'.join([save_path, name])
+    data_tag = train_path.split('data')[1].split('/')[1]
+    save_path = '/'.join([save_path, '-'.join([name, data_tag, 'ign' if ignore_nan else 'noign'])])
     if not os.path.isdir(save_path):
         os.mkdir(save_path)
     save_path = '/'.join([save_path, 'model.p'])
