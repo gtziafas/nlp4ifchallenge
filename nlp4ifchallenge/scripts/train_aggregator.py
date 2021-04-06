@@ -39,7 +39,7 @@ def get_scores(model_names: List[str], datasets: List[List[Tweet]], batch_size: 
     for name in model_names:
         this_model_outs = []
         model = make_model(name, True).to(device)
-        _dir = [d for d in os.listdir(model_dir) if d.startswith(name) and d.endswith('ign')][0]
+        _dir = [d for d in os.listdir(model_dir) if d.startswith(name) and d.endswith('english')][0]
         model.load_state_dict(load('/'.join([model_dir, _dir, 'model.p']))['model_state_dict'])
         for dataset in datasets:
             this_dataset_outs = []

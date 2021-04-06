@@ -34,7 +34,7 @@ def main(name: str,
         with_class_weights: bool,
         ignore_nan: bool):
     data_tag = train_path.split('data')[1].split('/')[1]
-    save_path = '/'.join([save_path, '-'.join([name, data_tag, 'ign' if ignore_nan else 'noign'])])
+    save_path = '/'.join([save_path, '-'.join([name, data_tag])])
     if not os.path.isdir(save_path):
         os.mkdir(save_path)
     save_path = '/'.join([save_path, 'model.p'])
@@ -73,7 +73,7 @@ if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('-n', '--name', help='name of the BERT model to load', type=str)
-    parser.add_argument('-tr', '--train_path', help='path to the training data tsv', type=str, default='./data/english/covid19_disinfo_binary_english_train_bert.tsv')
+    parser.add_argument('-tr', '--train_path', help='path to the training data tsv', type=str, default='./data/english/covid19_disinfo_binary_english_train_old.tsv')
     parser.add_argument('-dev', '--dev_path', help='path to the development data tsv', type=str, default='./data/english/covid19_disinfo_binary_english_dev_input.tsv')
     parser.add_argument('-tst', '--test_path', help='path to the testing data tsv', type=str, default='')
     parser.add_argument('-d', '--device', help='cpu or cuda', type=str, default='cuda')
