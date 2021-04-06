@@ -8,7 +8,7 @@ from ..utils.metrics import f1_score
 
 from math import ceil
 
-from torch.optim import SGD
+from torch.optim import SGD, Adam
 from torch.cuda import empty_cache
 from torch import load, cat, stack, save, no_grad, manual_seed
 
@@ -22,6 +22,7 @@ filterwarnings('ignore')
 MODELS_ENSEMBLE = ['vinai-covid', 'vinai-tweet', 'cardiffnlp-tweet', 'cardiffnlp-hate',
     'del-covid', 'cardiffnlp-irony', 'cardiffnlp-offensive', 'cardiffnlp-emotion']
 SAVE_PREFIX = '/data/s3913171/nlp4ifchallenge/checkpoints'
+
 
 
 def sprint(s: Any):
@@ -39,13 +40,13 @@ def get_scores(model_names: List[str], datasets: List[List[Tweet]], batch_size: 
         this_model_outs = []
         model = make_model(name, True).to(device)
         _dir = [d for d in os.listdir(model_dir) if d.startswith(name) and d.endswith('ign')][0]
-        model.load_state_dict(load('/'.join([_dir, 'model.p']))['model_state_dict'])
+        model.load_state_dict(load('/'.join([model_dir, _dir, 'model.p']))['model_state_dict'])
         for dataset in datasets:
             this_dataset_outs = []
             nbatches = ceil(len(dataset) / batch_size)
             for batch_idx in range(nbatches):
                 start, end = batch_idx * batch_size, min(len(dataset), (batch_idx + 1) * batch_size)
-                this_dataset_outs.append(model.predict_scores(dataset[start:end]))
+                this_dataset_outs.append(model.predict_scores(dataset[start:end]).cpu())
             this_model_outs.append(cat(this_dataset_outs, dim=0))
         outs.append(this_model_outs)
         empty_cache()
@@ -67,7 +68,7 @@ def train(model_names: List[str], train_path: str, dev_path: str, device: str, m
     save_dir = '/'.join([save_dir, 'model.p'])
 
     def load_scores():
-        tmp = load(model_dir + '/scores.p')
+        tmp = load(model_dir + f'/scores_{data_tag}.p')
         assert tmp['model_names'] == model_names
         return tmp['train_inputs'], tmp['dev_inputs']
 
@@ -75,10 +76,10 @@ def train(model_names: List[str], train_path: str, dev_path: str, device: str, m
     # load data from checkpoint if extracted scores once
     train_ds, dev_ds = read_labeled(train_path), read_labeled(dev_path)
     if not load_stored:
-        train_inputs, dev_inputs = get_scores(model_names=model_names, datasets=[train_ds, dev_ds], batch_size=16,
+        train_inputs, dev_inputs = get_scores(model_names=model_names, datasets=[train_ds, dev_ds], batch_size=8,
                                                device=device, model_dir=model_dir)
         save({'train_inputs': train_inputs, 'dev_inputs': dev_inputs, 'model_names': model_names},
-             model_dir + '/scores.p')
+             model_dir + f'/scores_{data_tag}.p')
     else:
         train_inputs, dev_inputs = load_scores()
 
@@ -90,7 +91,7 @@ def train(model_names: List[str], train_path: str, dev_path: str, device: str, m
                           collate_fn=lambda b: simple_collate(b, device))
 
     model = MetaClassifier(num_models=len(model_names), hidden_size=hidden_size, dropout=dropout).to(device)
-    optim = SGD(model.parameters(), lr=lr, weight_decay=wd)
+    optim = Adam(model.parameters(), lr=lr, weight_decay=wd)
     criterion = BCEWithLogitsIgnore(ignore_index=-1)
     trainer = Trainer(model, (train_dl, dev_dl), optim, criterion, target_metric='mean_f1', print_log=print_log)
     return trainer.iterate(num_epochs, with_save=save_dir)

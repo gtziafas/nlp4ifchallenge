@@ -2,7 +2,7 @@ from ..types import *
 from ..utils.metrics import preds_to_str
 
 from torch import tensor, stack, no_grad
-from torch.nn import Module, Linear, ModuleList, Dropout
+from torch.nn import Module, Linear, ModuleList, Dropout, LayerNorm
 
 
 def aggregate_scores(scores: List[array], faiths: List[array]) -> List[str]:
