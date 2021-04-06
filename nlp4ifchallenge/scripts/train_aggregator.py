@@ -123,8 +123,7 @@ def get_f1_at_threshold(predictions: List[float], truths: List[int], threshold: 
     return f1_score(truths, rounded, average='weighted', labels=[1, 0])
 
 
-def test(model_names: List[str], test_path: str, hidden_size: int, device: str, model_dir: str, save_to: str) -> List[
-    str]:
+def test(model_names: List[str], test_path: str, hidden_size: int, device: str, model_dir: str, save_to: str):
     test_ds = read_unlabeled(test_path)
     [test_inputs] = get_scores(model_names, datasets=[test_ds], batch_size=16, device=device, model_dir=model_dir)
     aggregator = MetaClassifier(num_models=len(model_names), hidden_size=hidden_size).to(device)
