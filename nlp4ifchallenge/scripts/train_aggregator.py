@@ -16,9 +16,6 @@ from warnings import filterwarnings
 import os
 import sys
 
-
-
-
 manual_seed(0)
 filterwarnings('ignore')
 
