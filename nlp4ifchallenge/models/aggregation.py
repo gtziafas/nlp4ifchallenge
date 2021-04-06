@@ -41,18 +41,3 @@ class MetaClassifier(Module):
         thresholds = thresholds if thresholds is not None else tensor([0.5] * self.num_classes, device=scores.device)
         aggr = self.forward(scores)  # B x Q
         return [preds_to_str(p) for p in (aggr.ge(thresholds)).long().cpu().tolist()]
-
-
-# class MetaClassifier2(Module):
-#     def __init__(self, num_models: int, hidden_size: int, dropout: float, num_classes: int = 7):
-#         super().__init__()
-#         self.num_classes = num_classes
-#         self.dropout = Dropout(p=dropout)
-#         self.fc1 = Linear(in_features=num_models * num_classes, out_features=hidden_size)
-#         self.fc2 = Linear(in_features=hidden_size, out_features=num_classes)
-
-#     def forward(self, x: Tensor) -> Tensor:
-#         x = x.flatten(1) # B x M x Q -> B x M*Q
-#         x = self.fc1(x).tanh() # B x H
-#         x = self.dropout(x)
-#         return self.fc2(x) # B x Q

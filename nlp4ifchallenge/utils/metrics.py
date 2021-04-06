@@ -20,18 +20,18 @@ def get_metrics(preds: List[List[int]], labels: List[List[int]], ignore_index: i
         per_column_preds[column] = [p for i, p in enumerate(per_column_preds[column])
                                     if per_column_labels[column][i] != 'nan']
         per_column_labels[column] = [p for p in per_column_labels[column] if p != 'nan']
-    per_column_metrics = [(f1_score(pcp, pcl, labels=['yes', 'no'], average='weighted'),
-                           recall_score(pcp, pcl, labels=['yes', 'no'], average='weighted'),
-                           precision_score(pcp, pcl, labels=['yes', 'no'], average='weighted'))
-                          for pcp, pcl in zip(per_column_preds, per_column_labels)]
+    per_column_metrics = [(f1_score(pcl, pcp, labels=['yes', 'no'], average='weighted'),
+                           recall_score(pcl, pcp, labels=['yes', 'no'], average='weighted'),
+                           precision_score(pcl, pcp, labels=['yes', 'no'], average='weighted'))
+                          for pcl, pcp in zip(per_column_labels, per_column_preds)]
     f1s, ps, rs = list(zip(*per_column_metrics))
 
     # manually remove ignored nans for accuracy and hamming computation 
     preds, labels = array(preds), array(labels)
     labels[labels == ignore_index] = 0
-    preds[argwhere(preds[:,0] == 0), 1:5] = 0
-    return {'accuracy': _round(accuracy_score(preds, labels)),
-            'hamming': _round(1 - hamming_loss(preds, labels)),
+    preds[argwhere(preds[:, 0] == 0), 1:5] = 0
+    return {'accuracy': _round(accuracy_score(labels, preds)),
+            'hamming': _round(1 - hamming_loss(labels, preds)),
             'mean_f1': _round(sum(f1s)/len(f1s)),
             'mean_precision': _round(sum(ps)/len(ps)),
             'mean_recall': _round(sum(rs)/len(rs)),
