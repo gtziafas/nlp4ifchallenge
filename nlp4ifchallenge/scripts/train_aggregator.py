@@ -9,7 +9,6 @@ from math import ceil
 
 from torch.optim import SGD
 from torch.cuda import empty_cache
-from torch.nn import BCEWithLogitsLoss
 from torch import load, cat, stack, save, no_grad, manual_seed
 
 from warnings import filterwarnings
