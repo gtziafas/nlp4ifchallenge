@@ -35,3 +35,17 @@ def extract_class_weights(file_path: str) -> List[float]:
     qs_neg = [[label for label in q if label == False] for q in labels_per_q]
     qs_pos = [[label for label in q if label == True] for q in labels_per_q]
     return [len(n) / len(p) for n, p in zip(qs_neg, qs_pos)]
+
+
+def write_to_tsv(out_file: str, data: List[LabeledTweet]):
+    header = '\t'.join(['tweet_no', 'tweet_text', *['q' + str(i) + '_label' for i in range(1,8)]])
+    with open(out_file, 'w+') as f:
+        f.write(header)
+        f.write('\n')
+        for i, sample in enumerate(data):
+            _no = sample.no
+            text = sample.text
+            labels = ['nan' if l is None else 'yes' if l else 'no' for l in sample.labels]  
+            write = '\t'.join([str(_no), text, *labels])
+            f.write(write)
+            f.write('\n')
