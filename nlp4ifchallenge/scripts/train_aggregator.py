@@ -20,9 +20,8 @@ manual_seed(0)
 filterwarnings('ignore')
 
 MODELS_ENSEMBLE = ['vinai-covid', 'vinai-tweet', 'cardiffnlp-tweet', 'cardiffnlp-hate',
-    'del-covid', 'cardiffnlp-irony', 'cardiffnlp-offensive', 'cardiffnlp-emotion']
+                   'del-covid', 'cardiffnlp-irony', 'cardiffnlp-offensive', 'cardiffnlp-emotion']
 SAVE_PREFIX = '/data/s3913171/nlp4ifchallenge/checkpoints'
-
 
 
 def sprint(s: Any):
@@ -72,12 +71,11 @@ def train(model_names: List[str], train_path: str, dev_path: str, device: str, m
         assert tmp['model_names'] == model_names
         return tmp['train_inputs'], tmp['dev_inputs']
 
-
     # load data from checkpoint if extracted scores once
     train_ds, dev_ds = read_labeled(train_path), read_labeled(dev_path)
     if not load_stored:
         train_inputs, dev_inputs = get_scores(model_names=model_names, datasets=[train_ds, dev_ds], batch_size=8,
-                                               device=device, model_dir=model_dir)
+                                              device=device, model_dir=model_dir)
         save({'train_inputs': train_inputs, 'dev_inputs': dev_inputs, 'model_names': model_names},
              model_dir + f'/scores_{data_tag}.p')
     else:
@@ -88,7 +86,7 @@ def train(model_names: List[str], train_path: str, dev_path: str, device: str, m
     train_dl = DataLoader(list(zip(train_inputs, train_labels)), batch_size=batch_size, shuffle=True,
                           collate_fn=lambda b: simple_collate(b, device))
     dev_dl = DataLoader(list(zip(dev_inputs, dev_labels)), batch_size=batch_size, shuffle=False,
-                          collate_fn=lambda b: simple_collate(b, device))
+                        collate_fn=lambda b: simple_collate(b, device))
 
     model = MetaClassifier(num_models=len(model_names), hidden_size=hidden_size, dropout=dropout).to(device)
     optim = Adam(model.parameters(), lr=lr, weight_decay=wd)
@@ -107,12 +105,12 @@ def find_thresholds(logits: Tensor, labels: List[List[int]], repeats: int):
         print('=' * 64)
         predictions = [p for ii, p in enumerate(pql) if ii not in nan_ids] if 0 < i < 5 else pql
         truths = [t for ii, t in enumerate(pqt) if ii not in nan_ids] if 0 < i < 5 else pqt
-        min_t, cur_t, max_t = (0.25, 0.5, 0.75)
+        min_t, cur_t, max_t = (0.01, 0.5, 0.99)
         for repeat in range(repeats):
             thresholds = [min_t, cur_t, max_t]
             f1s = [get_f1_at_threshold(predictions, truths, threshold) for threshold in thresholds]
             print(list(zip(thresholds, f1s)))
-            low, high = (left+right for left, right in zip(f1s, f1s[1:]))
+            low, high = (max(left, right) for left, right in zip(f1s, f1s[1:]))
             if low < high:
                 max_t = cur_t
             else:
@@ -125,7 +123,8 @@ def get_f1_at_threshold(predictions: List[float], truths: List[int], threshold: 
     return f1_score(truths, rounded, average='weighted', labels=[1, 0])
 
 
-def test(model_names: List[str], test_path: str, hidden_size: int, device: str, model_dir: str, save_to: str) -> List[str]:
+def test(model_names: List[str], test_path: str, hidden_size: int, device: str, model_dir: str, save_to: str) -> List[
+    str]:
     test_ds = read_unlabeled(test_path)
     [test_inputs] = get_scores(model_names, datasets=[test_ds], batch_size=16, device=device, model_dir=model_dir)
     aggregator = MetaClassifier(num_models=len(model_names), hidden_size=hidden_size).to(device)
@@ -136,11 +135,11 @@ def test(model_names: List[str], test_path: str, hidden_size: int, device: str, 
 
 
 def main(model_names: List[str], train_path: str, dev_path: str, device: str, model_dir: str, batch_size: int,
-          test_path: str, num_epochs: int, print_log: bool, load_stored: bool, hidden_size: int, dropout: float,
-          lr: float, wd: float):
-    #model_names = model_names.split(',')
+         test_path: str, num_epochs: int, print_log: bool, load_stored: bool, hidden_size: int, dropout: float,
+         lr: float, wd: float):
+    # model_names = model_names.split(',')
     sprint(model_names)
-    
+
     # if test path is given do only testing
     if test_path != '':
         out_file = model_dir + '/test.out'
@@ -156,10 +155,14 @@ def main(model_names: List[str], train_path: str, dev_path: str, device: str, mo
 
 if __name__ == "__main__":
     import argparse
+
     parser = argparse.ArgumentParser()
-    parser.add_argument('-n', '--model_names', help='names of BERT models for ensemble (given as ,-seperated str)', type=List[str], default=MODELS_ENSEMBLE)
-    parser.add_argument('-tr', '--train_path', help='path to the training data tsv', type=str, default='./data/english/covid19_disinfo_binary_english_train_aggr.tsv')
-    parser.add_argument('-dev', '--dev_path', help='path to the development data tsv', type=str, default='./data/english/covid19_disinfo_binary_english_dev_input.tsv')
+    parser.add_argument('-n', '--model_names', help='names of BERT models for ensemble (given as ,-seperated str)',
+                        type=List[str], default=MODELS_ENSEMBLE)
+    parser.add_argument('-tr', '--train_path', help='path to the training data tsv', type=str,
+                        default='./data/english/covid19_disinfo_binary_english_train_aggr.tsv')
+    parser.add_argument('-dev', '--dev_path', help='path to the development data tsv', type=str,
+                        default='./data/english/covid19_disinfo_binary_english_dev_input.tsv')
     parser.add_argument('-tst', '--test_path', help='path to the testing data tsv', type=str, default='')
     parser.add_argument('-d', '--device', help='cpu or cuda', type=str, default='cuda')
     parser.add_argument('-bs', '--batch_size', help='batch size to use for training', type=int, default=16)
@@ -169,8 +172,9 @@ if __name__ == "__main__":
     parser.add_argument('-dh', '--hidden_size', help='size of meta-classifier hidden layer', type=int, default=12)
     parser.add_argument('-lr', '--lr', help='learning rate to use for optimization', type=float, default=1e-02)
     parser.add_argument('-wd', '--wd', help='weight decay to use for regularization', type=float, default=1e-02)
-    parser.add_argument('--load_stored', action='store_true', help='whether to load scores from checkpoint', default=False)
+    parser.add_argument('--load_stored', action='store_true', help='whether to load scores from checkpoint',
+                        default=False)
     parser.add_argument('--print_log', action='store_true', help='print training logs', default=False)
-    
+
     kwargs = vars(parser.parse_args())
     main(**kwargs)
