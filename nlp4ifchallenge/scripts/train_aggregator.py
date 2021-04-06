@@ -122,7 +122,7 @@ def find_thresholds(logits: Tensor, labels: List[List[int]], repeats: int):
 
 def get_f1_at_threshold(predictions: List[float], truths: List[int], threshold: float) -> float:
     rounded = [1 if p > threshold else 0 for p in predictions]
-    return f1_score(rounded, truths, average='weighted', labels=[1, 0])
+    return f1_score(truths, rounded, average='weighted', labels=[1, 0])
 
 
 def test(model_names: List[str], test_path: str, hidden_size: int, device: str, model_dir: str, save_to: str) -> List[str]:
