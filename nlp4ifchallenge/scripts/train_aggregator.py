@@ -59,7 +59,8 @@ def simple_collate(pairs: List[Tuple[Tensor, LongTensor]], device: str) -> Tuple
 def train(model_names: List[str], train_path: str, dev_path: str, device: str, model_dir: str, batch_size: int,
           num_epochs: int, print_log: bool, load_stored: bool, hidden_size: int, dropout: float, lr: float,
           wd: float):
-    save_dir = '/'.join([model_dir, 'aggregator'])
+    data_tag = train_path.split('data')[1].split('/')[1]
+    save_dir = '/'.join([model_dir, '-'.join(['aggregator', data_tag])])
     if not os.path.isdir(save_dir):
         os.mkdir(save_dir)
     save_dir = '/'.join([save_dir, 'model.p'])
