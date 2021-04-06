@@ -4,6 +4,7 @@ from ..models.aggregation import MetaClassifier
 from ..utils.loss import BCEWithLogitsIgnore
 from ..preprocessing import read_unlabeled, read_labeled
 from ..utils.training import Trainer
+from ..utils.metrics import f1_score
 
 from math import ceil
 
@@ -14,6 +15,8 @@ from torch import load, cat, stack, save, no_grad, manual_seed
 from warnings import filterwarnings
 import os
 import sys
+
+
 
 
 manual_seed(0)
@@ -94,8 +97,32 @@ def train(model_names: List[str], train_path: str, dev_path: str, device: str, m
     return trainer.iterate(num_epochs, with_save=save_dir)
 
 
-def find_thresholds():
-    ...
+def find_thresholds(logits: Tensor, labels: List[List[int]], repeats: int):
+    per_q_logits = [pql.squeeze(-1).tolist() for pql in logits.chunk(7, dim=-1)]
+    per_q_labels = list(zip(*labels))
+    nan_ids = [i for i, l in enumerate(per_q_labels[0]) if l == 0]
+    for i, (pql, pqt) in enumerate(zip(per_q_logits, per_q_labels)):
+        print('=' * 64)
+        print(i)
+        print('=' * 64)
+        predictions = [p for ii, p in enumerate(pql) if ii not in nan_ids] if 0 < i < 5 else pql
+        truths = [t for ii, t in enumerate(pqt) if ii not in nan_ids] if 0 < i < 5 else pqt
+        min_t, cur_t, max_t = (0.25, 0.5, 0.75)
+        for repeat in range(repeats):
+            thresholds = [min_t, cur_t, max_t]
+            f1s = [get_f1_at_threshold(predictions, truths, threshold) for threshold in thresholds]
+            print(list(zip(thresholds, f1s)))
+            low, high = (left+right for left, right in zip(f1s, f1s[1:]))
+            if low < high:
+                max_t = cur_t
+            else:
+                min_t = cur_t
+            cur_t = min_t + (max_t - min_t) / 2
+
+
+def get_f1_at_threshold(predictions: List[float], truths: List[int], threshold: float) -> float:
+    rounded = [1 if p > threshold else 0 for p in predictions]
+    return f1_score(rounded, truths, average='weighted', labels=[1, 0])
 
 
 def test(model_names: List[str], test_path: str, hidden_size: int, device: str, model_dir: str, save_to: str) -> List[str]:
