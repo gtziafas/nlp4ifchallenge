@@ -25,6 +25,11 @@ def read_unlabeled(file_path: str) -> List[Tweet]:
         return [parse_unlabeled(line) for line in f]
 
 
+def tokenize_labels(labels: List[Label], ignore_nan: bool) -> List[int]:
+    none_label = 0 if not ignore_nan else -1
+    return [none_label if label is None else 0 if label is False else 1 for label in labels]
+
+
 def tokenize_tweets(tweets: List[Tweet], tokenizer_fn: Callable[[Tweet], T1]) -> List[T1]:
     return [tokenizer_fn(tweet) for tweet in tweets]
 
