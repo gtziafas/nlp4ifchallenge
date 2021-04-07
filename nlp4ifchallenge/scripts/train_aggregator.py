@@ -103,8 +103,8 @@ def find_thresholds(logits: Tensor, labels: List[List[int]], repeats: int):
         print('=' * 64)
         print(i)
         print('=' * 64)
-        predictions = [p for ii, p in enumerate(pql) if ii not in nan_ids] if 0 < i < 5 else pql
-        truths = [t for ii, t in enumerate(pqt) if ii not in nan_ids] if 0 < i < 5 else pqt
+        predictions = [p for ii, p in enumerate(pql) if pqt[ii] in [0,1]] if 0 < i < 5 else pql
+        truths = [t for t in pqt if t in [0,1]] if 0 < i < 5 else pqt
         min_t, cur_t, max_t = (0.01, 0.5, 0.99)
         for repeat in range(repeats):
             thresholds = [min_t, cur_t, max_t]
