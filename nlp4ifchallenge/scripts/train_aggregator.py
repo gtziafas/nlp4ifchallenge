@@ -105,15 +105,14 @@ def find_thresholds(logits: Tensor, labels: List[List[int]], repeats: int):
         print('=' * 64)
         print(i)
         print('=' * 64)
-        predictions = [p for ii, p in enumerate(pql) if pqt[ii] in [0,1]] if 0 < i < 5 else pql
-        truths = [t for t in pqt if t in [0,1]] if 0 < i < 5 else pqt
+        predictions, truths = list(zip(*[(p, t) for p, t in zip(pql, pqt) if t != -1]))
         min_t, cur_t, max_t = (0.01, 0.5, 0.99)
         for repeat in range(repeats):
             thresholds = [min_t, cur_t, max_t]
             f1s = [get_f1_at_threshold(predictions, truths, threshold) for threshold in thresholds]
             print(list(zip(thresholds, f1s)))
             low, high = (max(left, right) for left, right in zip(f1s, f1s[1:]))
-            if low < high:
+            if low > high:
                 max_t = cur_t
             else:
                 min_t = cur_t
