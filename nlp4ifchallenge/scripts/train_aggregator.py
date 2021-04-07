@@ -1,6 +1,6 @@
 from ..types import *
 from ..models.bert import make_model, tokenize_labels
-from ..models.aggregation import MetaClassifier
+from ..models.aggregation import MetaClassifier, MetaClassifier2
 from ..utils.loss import BCEWithLogitsIgnore
 from ..preprocessing import read_unlabeled, read_labeled
 from ..utils.training import Trainer
@@ -19,9 +19,13 @@ import sys
 manual_seed(0)
 filterwarnings('ignore')
 
-MODELS_ENSEMBLE = ['vinai-covid', 'vinai-tweet', 'cardiffnlp-tweet', 'cardiffnlp-hate',
-                   'del-covid', 'cardiffnlp-irony', 'cardiffnlp-offensive', 'cardiffnlp-emotion']
-SAVE_PREFIX = '/data/s3913171/nlp4ifchallenge/checkpoints'
+#SAVE_PREFIX = '/data/s3913171/nlp4ifchallenge/checkpoints'
+SAVE_PREFIX = './checkpoints'
+
+MODELS_ENSEMBLE_MAP = {
+    '3': ['vinai-covid', 'cardiffnlp-hate', 'del-covid'],
+    '8': ['vinai-covid', 'vinai-tweet', 'cardiffnlp-tweet', 'cardiffnlp-hate', 'del-covid', 'cardiffnlp-irony', 'cardiffnlp-offensive', 'cardiffnlp-emotion']
+}
 
 
 def sprint(s: Any):
@@ -30,7 +34,7 @@ def sprint(s: Any):
 
 
 def get_scores(model_names: List[str], datasets: List[List[Tweet]], batch_size: int, device: str,
-               model_dir: str) -> List[Tensor]:
+               model_dir: str, data_tag: str) -> List[Tensor]:
     """
        :returns num_dataset tensors of shape B x M x Q
     """
@@ -38,8 +42,7 @@ def get_scores(model_names: List[str], datasets: List[List[Tweet]], batch_size: 
     for name in model_names:
         this_model_outs = []
         model = make_model(name, True).to(device)
-        _dir = [d for d in os.listdir(model_dir) if d.startswith(name) and d.endswith('english')][0]
-        model.load_state_dict(load('/'.join([model_dir, _dir, 'model.p']))['model_state_dict'])
+        model.load_state_dict(load('/'.join([model_dir, f'{name}-{data_tag}', 'model.p']))['model_state_dict'])
         for dataset in datasets:
             this_dataset_outs = []
             nbatches = ceil(len(dataset) / batch_size)
@@ -67,7 +70,7 @@ def train(model_names: List[str], train_path: str, dev_path: str, device: str, m
     save_dir = '/'.join([save_dir, 'model.p'])
 
     def load_scores():
-        tmp = load(model_dir + f'/scores_{data_tag}.p')
+        tmp = load(model_dir + f'/scores_{len(model_names)}_{data_tag}.p')
         assert tmp['model_names'] == model_names
         return tmp['train_inputs'], tmp['dev_inputs']
 
@@ -75,9 +78,9 @@ def train(model_names: List[str], train_path: str, dev_path: str, device: str, m
     train_ds, dev_ds = read_labeled(train_path), read_labeled(dev_path)
     if not load_stored:
         train_inputs, dev_inputs = get_scores(model_names=model_names, datasets=[train_ds, dev_ds], batch_size=8,
-                                              device=device, model_dir=model_dir)
+                                              device=device, model_dir=model_dir, data_tag=data_tag)
         save({'train_inputs': train_inputs, 'dev_inputs': dev_inputs, 'model_names': model_names},
-             model_dir + f'/scores_{data_tag}.p')
+             model_dir + f'/scores_{len(model_names)}_{data_tag}.p')
     else:
         train_inputs, dev_inputs = load_scores()
 
@@ -98,7 +101,6 @@ def train(model_names: List[str], train_path: str, dev_path: str, device: str, m
 def find_thresholds(logits: Tensor, labels: List[List[int]], repeats: int):
     per_q_logits = [pql.squeeze(-1).tolist() for pql in logits.chunk(7, dim=-1)]
     per_q_labels = list(zip(*labels))
-    nan_ids = [i for i, l in enumerate(per_q_labels[0]) if l == 0]
     for i, (pql, pqt) in enumerate(zip(per_q_logits, per_q_labels)):
         print('=' * 64)
         print(i)
@@ -119,15 +121,16 @@ def find_thresholds(logits: Tensor, labels: List[List[int]], repeats: int):
 
 
 def get_f1_at_threshold(predictions: List[float], truths: List[int], threshold: float) -> float:
-    rounded = [1 if p > threshold else 0 for p in predictions]
+    rounded = [1 if p >= threshold else 0 for p in predictions]
     return f1_score(truths, rounded, average='weighted', labels=[1, 0])
 
 
 def test(model_names: List[str], test_path: str, hidden_size: int, device: str, model_dir: str, save_to: str):
     test_ds = read_unlabeled(test_path)
+    data_tag = test_path.split('data')[1].split('/')[1]
     [test_inputs] = get_scores(model_names, datasets=[test_ds], batch_size=16, device=device, model_dir=model_dir)
     aggregator = MetaClassifier(num_models=len(model_names), hidden_size=hidden_size).to(device)
-    aggregator.load_state_dict(load(model_dir + '/aggregator/model.p'))
+    aggregator.load_state_dict(load(model_dir + f'/aggregator-{data_tag}/model.p'))
     outs = aggregator.threshold(test_inputs.to(device))
     with open(save_to, 'w') as f:
         f.write('\n'.join(outs))
@@ -136,7 +139,7 @@ def test(model_names: List[str], test_path: str, hidden_size: int, device: str, 
 def main(model_names: List[str], train_path: str, dev_path: str, device: str, model_dir: str, batch_size: int,
          test_path: str, num_epochs: int, print_log: bool, load_stored: bool, hidden_size: int, dropout: float,
          lr: float, wd: float):
-    # model_names = model_names.split(',')
+    model_names = MODELS_ENSEMBLE_MAP[model_names]
     sprint(model_names)
 
     # if test path is given do only testing
@@ -154,12 +157,10 @@ def main(model_names: List[str], train_path: str, dev_path: str, device: str, mo
 
 if __name__ == "__main__":
     import argparse
-
     parser = argparse.ArgumentParser()
-    parser.add_argument('-n', '--model_names', help='names of BERT models for ensemble (given as ,-seperated str)',
-                        type=List[str], default=MODELS_ENSEMBLE)
+    parser.add_argument('-n', '--model_names', help='string that maps to bert ensembles (3 or 8)', type=str, default=8)
     parser.add_argument('-tr', '--train_path', help='path to the training data tsv', type=str,
-                        default='./data/english/covid19_disinfo_binary_english_train_aggr.tsv')
+                        default='./data/english/covid19_disinfo_binary_english_train.tsv')
     parser.add_argument('-dev', '--dev_path', help='path to the development data tsv', type=str,
                         default='./data/english/covid19_disinfo_binary_english_dev_input.tsv')
     parser.add_argument('-tst', '--test_path', help='path to the testing data tsv', type=str, default='')
