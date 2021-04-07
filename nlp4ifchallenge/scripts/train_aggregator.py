@@ -16,7 +16,7 @@ from warnings import filterwarnings
 import os
 import sys
 
-manual_seed(0)
+manual_seed(1312)
 filterwarnings('ignore')
 
 #SAVE_PREFIX = '/data/s3913171/nlp4ifchallenge/checkpoints'
@@ -24,6 +24,7 @@ SAVE_PREFIX = './checkpoints'
 
 MODELS_ENSEMBLE_MAP = {
     '3': ['vinai-covid', 'cardiffnlp-hate', 'del-covid'],
+    '5': ['vinai-covid', 'cardiffnlp-hate', 'del-covid', 'cardiffnlp-irony', 'cardiffnlp-emotion'],
     '8': ['vinai-covid', 'vinai-tweet', 'cardiffnlp-tweet', 'cardiffnlp-hate', 'del-covid', 'cardiffnlp-irony', 'cardiffnlp-offensive', 'cardiffnlp-emotion']
 }
 
@@ -114,6 +115,9 @@ def find_thresholds(logits: Tensor, labels: List[List[int]], repeats: int):
             low, high = (max(left, right) for left, right in zip(f1s, f1s[1:]))
             if low > high:
                 max_t = cur_t
+            elif low == high:
+                min_t = (cur_t - min_t) / 2
+                max_t = (max_t - cur_t) / 2 + cur_t
             else:
                 min_t = cur_t
             cur_t = min_t + (max_t - min_t) / 2
