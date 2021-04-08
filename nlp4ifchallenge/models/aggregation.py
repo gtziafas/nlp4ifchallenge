@@ -1,7 +1,7 @@
 from ..types import *
 from ..utils.metrics import preds_to_str
 
-from torch import tensor, stack, no_grad
+from torch import tensor, stack, no_grad, ones_like, zeros_like, where
 from torch.nn import Module, Linear, ModuleList, Dropout, Conv1d
 
 
@@ -9,6 +9,14 @@ def aggregate_scores(scores: List[array], faiths: List[array]) -> List[str]:
     sum_faiths = sum(faiths)   # (7,)
     predictions = (sum([score * faith for score, faith in zip(scores, faiths)])/sum_faiths).round().astype(int).tolist()
     return [preds_to_str(p) for p in predictions]
+
+
+def aggregate_votes(scores: Tensor) -> List[str]:
+    assert len(scores.shape) == 3, 'Must give B x M x Q float tensor'
+    ones_per_q = scores.round().sum(dim=1)
+    zeros_per_q = scores.shape[1] - ones_per_q
+    votes = where(ones_per_q > zeros_per_q, ones_like(ones_per_q), zeros_like(ones_per_q)).long() # B x Q
+    return [preds_to_str(p) for p in votes.tolist()]
 
 
 class PerQMetaClassifier(Module):
