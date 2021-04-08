@@ -1,6 +1,6 @@
 from ..types import *
 from ..models.bert import make_model, tokenize_labels
-from ..models.aggregation import MetaClassifier, MetaClassifier2
+from ..models.aggregation import MetaClassifier, MetaClassifier2, aggregate_votes
 from ..utils.loss import BCEWithLogitsIgnore
 from ..preprocessing import read_unlabeled, read_labeled
 from ..utils.training import Trainer
@@ -19,13 +19,13 @@ import sys
 manual_seed(1312)
 filterwarnings('ignore')
 
-#SAVE_PREFIX = '/data/s3913171/nlp4ifchallenge/checkpoints'
-SAVE_PREFIX = './checkpoints'
+SAVE_PREFIX = '/data/s3913171/nlp4ifchallenge/checkpoints'
+#SAVE_PREFIX = './checkpoints'
 
 MODELS_ENSEMBLE_MAP = {
     '3': ['vinai-covid', 'cardiffnlp-hate', 'del-covid'],
-    '5': ['vinai-covid', 'cardiffnlp-hate', 'del-covid', 'cardiffnlp-irony', 'cardiffnlp-emotion'],
-    '6': ['vinai-covid', 'cardiffnlp-hate', 'del-covid', 'cardiffnlp-irony', 'cardiffnlp-emotion', 'cardiffnlp-offensive']
+    '5': ['vinai-covid', 'cardiffnlp-offensive', 'del-covid', 'cardiffnlp-irony', 'cardiffnlp-emotion'],
+    '6': ['vinai-covid', 'cardiffnlp-hate', 'del-covid', 'cardiffnlp-irony', 'cardiffnlp-emotion', 'cardiffnlp-offensive'],
     '8': ['vinai-covid', 'vinai-tweet', 'cardiffnlp-tweet', 'cardiffnlp-hate', 'del-covid', 'cardiffnlp-irony', 'cardiffnlp-offensive', 'cardiffnlp-emotion']
 }
 
@@ -132,12 +132,13 @@ def get_f1_at_threshold(predictions: List[float], truths: List[int], threshold: 
 def test(model_names: List[str], test_path: str, hidden_size: int, device: str, model_dir: str, save_to: str):
     test_ds = read_unlabeled(test_path)
     data_tag = test_path.split('data')[1].split('/')[1]
-    [test_inputs] = get_scores(model_names, datasets=[test_ds], batch_size=16, device=device, model_dir=model_dir)
-    aggregator = MetaClassifier(num_models=len(model_names), hidden_size=hidden_size).to(device)
-    aggregator.load_state_dict(load(model_dir + f'/aggregator-{data_tag}/model.p'))
-    outs = aggregator.threshold(test_inputs.to(device))
+    [test_inputs] = get_scores(model_names, datasets=[test_ds], batch_size=16, device=device, model_dir=model_dir, data_tag=data_tag)
+    #aggregator = MetaClassifier(num_models=len(model_names), hidden_size=hidden_size).to(device)
+    #aggregator.load_state_dict(load(model_dir + f'/aggregator-{data_tag}/model.p'))
+    #outs = aggregator.threshold(test_inputs.to(device))
+    votes = aggregate_votes(test_inputs)
     with open(save_to, 'w') as f:
-        f.write('\n'.join(outs))
+        f.write('\n'.join(votes))
 
 
 def main(model_names: List[str], train_path: str, dev_path: str, device: str, model_dir: str, batch_size: int,
