@@ -29,10 +29,17 @@ class BERTLike(Module, Model):
     def tensorize_unlabeled(self, tweets: List[Tweet]) -> List[Tensor]:
         return [tokenize_unlabeled(tweet, self.tokenizer, max_length=self.max_length) for tweet in tweets]
 
-    def forward(self, x: Tensor):
+    def forward(self, x: Tensor) -> Tensor:
         attention_mask = x.ne(self.tokenizer.pad_token_id)
         _, cls = self.core(x, attention_mask, output_hidden_states=False, return_dict=False)
         return self.classifier(self.dropout(cls))
+
+    @no_grad()
+    def last_hidden_state(self, tweets: List[Tweet]) -> Tensor:
+        x = pad_sequence(self.tensorize_unlabeled(tweets), padding_value=self.tokenizer.pad_token_id).to(self.core.device)
+        attention_mask = x.ne(self.tokenizer.pad_token_id)
+        h, _ = self.core(x, attention_mask, output_hidden_states=False, return_dict=False)
+        return h
 
     @no_grad()
     def predict_scores(self, tweets: List[Tweet]) -> Tensor:
