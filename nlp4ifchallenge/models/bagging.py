@@ -107,7 +107,7 @@ def tensorize_unlabeled(tweets: List[Tweet], we: WordEmbedder, tf_idf: Maybe[TfI
 
 
 def tensorize_labeled(tweets: List[LabeledTweet], *args, **kwargs) -> List[Tuple[Tensor, Maybe[Tensor], LongTensor]]:
-    unlabeled = tensorize_unlabeled([Tweet(tweet.no, tweet.text) for tweet in tweets], *args, **kwargs)
+    unlabeled = tensorize_unlabeled([Tweet(no=tweet.no, text=tweet.text) for tweet in tweets], *args, **kwargs)
     labels = tokenize_labels([tweet.labels for tweet in tweets])
     return [(inp[0], inp[1], label) for inp, label in zip(unlabeled, labels)]
 
