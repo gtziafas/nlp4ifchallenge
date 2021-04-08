@@ -25,6 +25,7 @@ SAVE_PREFIX = './checkpoints'
 MODELS_ENSEMBLE_MAP = {
     '3': ['vinai-covid', 'cardiffnlp-hate', 'del-covid'],
     '5': ['vinai-covid', 'cardiffnlp-hate', 'del-covid', 'cardiffnlp-irony', 'cardiffnlp-emotion'],
+    '6': ['vinai-covid', 'cardiffnlp-hate', 'del-covid', 'cardiffnlp-irony', 'cardiffnlp-emotion', 'cardiffnlp-offensive']
     '8': ['vinai-covid', 'vinai-tweet', 'cardiffnlp-tweet', 'cardiffnlp-hate', 'del-covid', 'cardiffnlp-irony', 'cardiffnlp-offensive', 'cardiffnlp-emotion']
 }
 
@@ -107,7 +108,7 @@ def find_thresholds(logits: Tensor, labels: List[List[int]], repeats: int):
         print(i)
         print('=' * 64)
         predictions, truths = list(zip(*[(p, t) for p, t in zip(pql, pqt) if t != -1]))
-        min_t, cur_t, max_t = (0.01, 0.5, 0.99)
+        min_t, cur_t, max_t = (0.35, 0.5, 0.65)
         for repeat in range(repeats):
             thresholds = [min_t, cur_t, max_t]
             f1s = [get_f1_at_threshold(predictions, truths, threshold) for threshold in thresholds]
@@ -116,7 +117,7 @@ def find_thresholds(logits: Tensor, labels: List[List[int]], repeats: int):
             if low > high:
                 max_t = cur_t
             elif low == high:
-                min_t = (cur_t - min_t) / 2
+                min_t = (cur_t - min_t) / 2 + min_t
                 max_t = (max_t - cur_t) / 2 + cur_t
             else:
                 min_t = cur_t
