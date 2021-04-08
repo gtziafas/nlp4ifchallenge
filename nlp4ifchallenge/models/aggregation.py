@@ -15,7 +15,7 @@ def aggregate_votes(scores: Tensor) -> List[str]:
     assert len(scores.shape) == 3, 'Must give B x M x Q float tensor'
     ones_per_q = scores.round().sum(dim=1)
     zeros_per_q = scores.shape[1] - ones_per_q
-    votes = where(ones_per_q > zeros_per_q, ones_like(ones_per_q), zeros_like(ones_per_q)).long() # B x Q
+    votes = where(ones_per_q >= zeros_per_q, ones_like(ones_per_q), zeros_like(ones_per_q)).long() # B x Q
     return [preds_to_str(p) for p in votes.tolist()]
 
 
