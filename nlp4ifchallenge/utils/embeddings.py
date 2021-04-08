@@ -11,26 +11,25 @@ def glove_embeddings(version: str) -> WordEmbedder:
     def embedd(sent: List[str]) -> array:
         sent_proc = _glove(sent)
         return array([word.vector for word in sent_proc])
-    def embedd_many(sents: List[List[str]]) -> List[array]:
-        return list(map(embedd, sents))
+    def embedd_many(tweets: List[LabeledTweet]) -> List[array]:
+        return list(map(embedd, [t.text for t in tweets]))
     return embedd_many
 
 
 # last hidden layer representations of a pre-trained BERT encoder
 @torch.no_grad()
-def frozen_bert_embeddings(name: str, **kwargs) -> WordEmbedder:
-    from ..models.bert import BertLike
-    model = BertLike(name=name, **kwargs)
-    def embedd_many(sents: List[List[str]]) -> array:
-        tokens = stack(model.tensorize_labeled(sents))
-        attention_mask = tokens.ne(model.tokenizer.pad_token_id)
-        hidden, _ = model(tokens, attention_mask, output_hidden_states=True, return_dict=False)
-        return hidden.cpu().numpy()
+def frozen_bert_embeddings(name: str, from_checkpoint: Maybe[str] = None, **kwargs) -> WordEmbedder:
+    from nlp4ifchallenge.models.bert import make_model
+    model = make_model(name=name, **kwargs)
+    if from_checkpoint is not None:
+        model.load_state_dict(torch.load(from_checkpoint)['model_state_dict'])
+    def embedd_many(sents: List[LabeledTweet]) -> array:
+        return model.last_hidden_state(sents).cpu().numpy()
     return embedd_many
 
 
 # make word embedder function
-def make_word_embedder(embeddings: str) -> WordEmbedder:
+def make_word_embedder(embeddings: str, **kwargs) -> WordEmbedder:
     if embeddings.startswith('glove_'):
         version = embeddings.split('_')[1]
         if version not in ['md', 'lg']:
@@ -38,7 +37,7 @@ def make_word_embedder(embeddings: str) -> WordEmbedder:
         embedder = glove_embeddings(version)
 
     elif 'bert' in embeddings:
-        embedder = frozen_bert_embeddings(name=embeddings)
+        embedder = frozen_bert_embeddings(name=embeddings, **kwargs)
 
 
     else:
