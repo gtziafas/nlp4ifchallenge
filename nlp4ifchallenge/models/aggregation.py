@@ -48,8 +48,8 @@ class MetaClassifier(Module):
     def threshold(self, scores: Tensor, thresholds: Maybe[Tensor] = None) -> List[str]:
         self.eval()
         thresholds = thresholds if thresholds is not None else tensor([0.5] * self.num_classes, device=scores.device)
-        aggr = self.forward(scores).sigmoid()  # B x Q
-        return [preds_to_str(p) for p in (aggr.ge(thresholds)).long().cpu().tolist()]
+        aggr = self.forward(scores).sigmoid().ge(thresholds).long()  # B x Q
+        return [preds_to_str(p) for p in aggr.cpu().tolist()]
 
 
 class MetaClassifier2(Module):
