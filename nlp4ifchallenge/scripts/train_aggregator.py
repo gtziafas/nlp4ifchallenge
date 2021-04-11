@@ -4,7 +4,6 @@ from ..models.aggregation import MetaClassifier, MetaClassifier2, aggregate_vote
 from ..utils.loss import BCEWithLogitsIgnore
 from ..preprocessing import read_unlabeled, read_labeled
 from ..utils.training import Trainer
-from ..utils.metrics import f1_score
 
 from math import ceil
 
@@ -100,42 +99,13 @@ def train(model_names: List[str], train_path: str, dev_path: str, device: str, m
     return trainer.iterate(num_epochs, with_save=save_dir)
 
 
-def find_thresholds(logits: Tensor, labels: List[List[int]], repeats: int):
-    per_q_logits = [pql.squeeze(-1).tolist() for pql in logits.chunk(7, dim=-1)]
-    per_q_labels = list(zip(*labels))
-    for i, (pql, pqt) in enumerate(zip(per_q_logits, per_q_labels)):
-        print('=' * 64)
-        print(i)
-        print('=' * 64)
-        predictions, truths = list(zip(*[(p, t) for p, t in zip(pql, pqt) if t != -1]))
-        min_t, cur_t, max_t = (0.35, 0.5, 0.65)
-        for repeat in range(repeats):
-            thresholds = [min_t, cur_t, max_t]
-            f1s = [get_f1_at_threshold(predictions, truths, threshold) for threshold in thresholds]
-            print(list(zip(thresholds, f1s)))
-            low, high = (max(left, right) for left, right in zip(f1s, f1s[1:]))
-            if low > high:
-                max_t = cur_t
-            elif low == high:
-                min_t = (cur_t - min_t) / 2 + min_t
-                max_t = (max_t - cur_t) / 2 + cur_t
-            else:
-                min_t = cur_t
-            cur_t = min_t + (max_t - min_t) / 2
-
-
-def get_f1_at_threshold(predictions: List[float], truths: List[int], threshold: float) -> float:
-    rounded = [1 if p >= threshold else 0 for p in predictions]
-    return f1_score(truths, rounded, average='weighted', labels=[1, 0])
-
-
 def test(model_names: List[str], test_path: str, hidden_size: int, device: str, model_dir: str, save_to: str):
     test_ds = read_unlabeled(test_path)
     data_tag = test_path.split('data')[1].split('/')[1]
     [test_inputs] = get_scores(model_names, datasets=[test_ds], batch_size=16, device=device, model_dir=model_dir, data_tag=data_tag)
     #aggregator = MetaClassifier(num_models=len(model_names), hidden_size=hidden_size).to(device)
     #aggregator.load_state_dict(load(model_dir + f'/aggregator-{data_tag}/model.p'))
-    #outs = aggregator.threshold(test_inputs.to(device))
+    #outs = aggregator.predict(test_inputs.to(device))
     votes = aggregate_votes(test_inputs)
     with open(save_to, 'w') as f:
         f.write('\n'.join(votes))
