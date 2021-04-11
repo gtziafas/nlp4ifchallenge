@@ -45,7 +45,7 @@ class MetaClassifier(Module):
         return stack([_cls.forward(x) for _cls, x in zip(self.perq_cls, xs)], dim=-1).squeeze(1)
 
     @no_grad()
-    def threshold(self, scores: Tensor, thresholds: Maybe[Tensor] = None) -> List[str]:
+    def predict(self, scores: Tensor, thresholds: Maybe[Tensor] = None) -> List[str]:
         self.eval()
         thresholds = thresholds if thresholds is not None else tensor([0.5] * self.num_classes, device=scores.device)
         aggr = self.forward(scores).sigmoid().ge(thresholds).long()  # B x Q
